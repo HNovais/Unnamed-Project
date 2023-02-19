@@ -2,6 +2,7 @@
 using MySql.Data.MySqlClient;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Policy;
 
 public class MyDbContext : DbContext
 {
@@ -36,6 +37,11 @@ public class User
 
     [Required]
     [Column("userPassword")]
-    [StringLength(50)]
+    [StringLength(128)]
     public string Password { get; set; }
+
+    [Required]
+    [Column("userSalt")]
+    [StringLength(128)]
+    public string Salt { get; set; }
 }
