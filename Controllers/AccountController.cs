@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -6,6 +9,12 @@ public class AccountController : Controller
 {
     [HttpGet]
     public ActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    public ActionResult Login()
     {
         return View();
     }
@@ -58,6 +67,46 @@ public class AccountController : Controller
         }
 
         return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult Login(LoginViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            using (var db = new MyDbContext())
+            {
+                var user = db.User.FirstOrDefault(u => (u.Username == model.UsernameOrEmail || u.Email == model.UsernameOrEmail));
+
+                if (user != null && VerifyPassword(model.Password, user.Salt, user.Password))
+                {
+                    Console.WriteLine("Username: " + model.UsernameOrEmail + "\nPassword: " + model.Password);
+
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid username or password.");
+                }
+            }
+        }
+
+        return View(model);
+    }
+
+    private bool VerifyPassword(string enteredPassword, string storedSalt, string storedHashedPassword)
+    {
+        using (var sha256 = SHA256.Create())
+        {
+            // Combine entered password with stored salt and hash the result
+            string saltedPassword = enteredPassword + storedSalt;
+            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedPassword));
+            var hashedPassword = BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
+
+            // Compare the hashed password with the stored hashed password
+            return hashedPassword == storedHashedPassword;
+        }
     }
 
     private string GenerateSalt()
