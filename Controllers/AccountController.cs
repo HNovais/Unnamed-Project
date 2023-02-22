@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -81,7 +83,26 @@ public class AccountController : Controller
 
                 if (user != null && VerifyPassword(model.Password, user.Salt, user.Password))
                 {
-                    Console.WriteLine("Username: " + model.UsernameOrEmail + "\nPassword: " + model.Password);
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, user.Username),
+                        new Claim(ClaimTypes.Role, "User")
+                    };
+
+                    var claimsIdentity = new ClaimsIdentity(
+                        claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                    var authProperties = new AuthenticationProperties
+                    {
+                        ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
+                        IssuedUtc = DateTimeOffset.UtcNow,
+                        IsPersistent = true
+                    };
+
+                    HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -94,6 +115,7 @@ public class AccountController : Controller
 
         return View(model);
     }
+
 
     private bool VerifyPassword(string enteredPassword, string storedSalt, string storedHashedPassword)
     {

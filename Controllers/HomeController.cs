@@ -15,6 +15,7 @@ namespace unnamed.Controllers
 
         public IActionResult Index()
         {
+            ViewBag.UserName = HttpContext.User.Identity.Name;
             return View();
         }
 
