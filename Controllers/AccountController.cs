@@ -16,6 +16,12 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    public ActionResult RegisterStore()
+    {
+        return View();
+    }
+
+    [HttpGet]
     public ActionResult Login()
     {
         return View();
@@ -73,21 +79,74 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public ActionResult RegisterStore(RegisterStoreViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            using (var db = new MyDbContext())
+            {
+                // Check if the username already exists in the database
+                if (db.Store.Any(u => u.Username == model.Username))
+                {
+                    ModelState.AddModelError("Username", "The username already exists");
+                }
+
+                else if (db.Store.Any(u => u.Email == model.Email))
+                {
+                    ModelState.AddModelError("Email", "It already exists an account with this e-mail");
+                }
+
+                else
+                {
+                    // Generate a random salt
+                    var salt = GenerateSalt();
+
+                    // Hash the password with the salt using SHA256
+                    var hashedPassword = GetHashedPassword(model.Password, salt);
+
+                    // Create a new user using the model data
+                    var store = new Store
+                    {
+                        Name = model.Name,
+                        Username = model.Username,
+                        Email = model.Email,
+                        Phone = model.Phone,
+                        Password = hashedPassword,
+                        Salt = salt
+                    };
+
+                    // Add the user to the Users DbSet and save changes to the database
+                    db.Store.Add(store);
+                    db.SaveChanges();
+
+                    // Redirect to the appropriate page after registration
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+        }
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult Login(LoginViewModel model)
     {
         if (ModelState.IsValid)
         {
             using (var db = new MyDbContext())
             {
-                var user = db.User.FirstOrDefault(u => (u.Username == model.UsernameOrEmail || u.Email == model.UsernameOrEmail));
+                // Try to find a user with the provided username or email
+                var user = db.User.FirstOrDefault(u => u.Username == model.UsernameOrEmail || u.Email == model.UsernameOrEmail);
 
                 if (user != null && VerifyPassword(model.Password, user.Salt, user.Password))
                 {
+                    // User login succeeded, set the user role in the cookie
                     var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, user.Username),
-                        new Claim(ClaimTypes.Role, "User")
-                    };
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Role, "User")
+                };
 
                     var claimsIdentity = new ClaimsIdentity(
                         claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -108,13 +167,46 @@ public class AccountController : Controller
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Invalid username or password.");
+                    // Try to find a store with the provided username
+                    var store = db.Store.FirstOrDefault(s => s.Username == model.UsernameOrEmail || s.Email == model.UsernameOrEmail);
+
+                    if (store != null && VerifyPassword(model.Password, store.Salt, store.Password))
+                    {
+                        // Store login succeeded, set the store role in the cookie
+                        var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, store.Username),
+                        new Claim(ClaimTypes.Role, "Store")
+                    };
+
+                        var claimsIdentity = new ClaimsIdentity(
+                            claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                        var authProperties = new AuthenticationProperties
+                        {
+                            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
+                            IssuedUtc = DateTimeOffset.UtcNow,
+                            IsPersistent = true
+                        };
+
+                        HttpContext.SignInAsync(
+                            CookieAuthenticationDefaults.AuthenticationScheme,
+                            new ClaimsPrincipal(claimsIdentity),
+                            authProperties);
+
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Invalid username or password.");
+                    }
                 }
             }
         }
 
         return View(model);
     }
+
 
 
     private bool VerifyPassword(string enteredPassword, string storedSalt, string storedHashedPassword)
