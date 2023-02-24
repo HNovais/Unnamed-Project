@@ -27,31 +27,6 @@ public class AccountController : Controller
         return View();
     }
 
-    [HttpGet]
-    [Route("Account/{storeUsername}")]
-    public ActionResult StoreProfile(string storeUsername)
-    {
-        using (var db = new MyDbContext())
-        {
-            Console.WriteLine(storeUsername);
-            var store = db.Store.FirstOrDefault(s => s.Username == storeUsername);
-
-            if (store != null)
-            {
-                var model = new RegisterStoreViewModel
-                {
-                    Name = store.Name,
-                    Email = store.Email
-                    // set other properties as needed
-                };
-
-                return View(model);
-            }
-        }
-
-        return RedirectToAction("Index", "Home");
-    }
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public ActionResult Register(RegisterViewModel model)
@@ -231,8 +206,6 @@ public class AccountController : Controller
 
         return View(model);
     }
-
-
 
     private bool VerifyPassword(string enteredPassword, string storedSalt, string storedHashedPassword)
     {

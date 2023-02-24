@@ -8,6 +8,7 @@ public class MyDbContext : DbContext
 {
     public DbSet<User> User { get; set; }
     public DbSet<Store> Store { get; set; }
+    public DbSet<Review> Review { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString = "server=localhost;port=3306;user=root;database=unnamed;password=8426";
@@ -83,4 +84,32 @@ public class Store
     [Column("storePhone")]
     [StringLength(50)]
     public string Phone { get; set; }
+}
+
+public class Review
+{
+    [Key]
+    [Column("reviewID")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("storeFK")]
+    public int Store { get; set; }
+
+    [Required]
+    [Column("userFK")]
+    public int User { get; set; }
+
+    [Required]
+    [Column("rating")]
+    public int Rating { get; set; }
+
+    [Required]
+    [Column("comment")]
+    public string? Comment { get; set; }
+
+    [Required]
+    [Column("reviewDate")]
+    public DateTime ReviewDate { get; set; }
 }

@@ -1,0 +1,30 @@
+﻿@using System.Security.Claims;
+
+@model StoreProfileViewModel
+
+<h1>@Model.Name</h1>
+<p>@Model.Email</p>
+
+@foreach (var review in Model.Reviews)
+{
+    <div class="review">
+        <p>Rating: @review.Rating</p>
+        <p>Comment: @review.Comment</p>
+        <p>Posted on: @review.ReviewDate</p>
+    </div>
+}
+
+<h2>Add Review</h2>
+<form asp-action="AddReview" asp-controller="Store">
+    <input type="hidden" name="StoreID" value="@Model.Id" />
+    <input type="hidden" name="UserID" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
+    <div>
+        <label for="rating">Rating:</label>
+        <input type="number" name="Rating" min="1" max="5" required />
+    </div>
+    <div>
+        <label for="comment">Comment:</label>
+        <textarea name="Comment"></textarea>
+    </div>
+    <button type="submit">Submit Review</button>
+</form>
