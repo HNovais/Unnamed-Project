@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 
 public class StoreController : Controller
@@ -20,7 +21,7 @@ public class StoreController : Controller
                     Email = store.Email,
                     // set other properties as needed
 
-                    Reviews = db.Review.Where(r => r.Id == store.Id).ToList()
+                    Reviews = db.Review.Where(r => r.Store == store.Id).ToList()
                 };
 
                 return View(model);
@@ -39,25 +40,32 @@ public class StoreController : Controller
         {
             using (var db = new MyDbContext())
             {
-                var review = new Review
+                var store = db.Store.FirstOrDefault(s => s.Username == model.StoreUsername);
+                var user = db.User.FirstOrDefault(u => u.Username == model.UserUsername);
+
+                if (store != null && user != null)
                 {
-                    Store = model.StoreID,
-                    User = model.UserID,
-                    Rating = model.Rating,
-                    Comment = model.Comment,
-                    ReviewDate = DateTime.Now
-                };
+                    var review = new Review
+                    {
+                        Store = store.Id,
+                        User = user.Id,
+                        Rating = model.Rating,
+                        Comment = model.Comment,
+                        ReviewDate = DateTime.Now
+                    };
 
-                db.Review.Add(review);
-                db.SaveChanges();
+                    db.Review.Add(review);
+                    db.SaveChanges();
+
+                    return RedirectToAction(model.StoreUsername);
+                }
             }
-
-            return RedirectToAction("{storeUsername}");
         }
 
         // If the model state is not valid, return the view with the model errors
-        return View(model);
+         return View(model);
     }
+
 
 }
 

@@ -16,8 +16,8 @@
 
 <h2>Add Review</h2>
 <form asp-action="AddReview" asp-controller="Store">
-    <input type="hidden" name="StoreID" value="@Model.Id" />
-    <input type="hidden" name="UserID" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
+    <input type="hidden" name="StoreUsername" value="@Model.Name" />
+    <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
     <div>
         <label for="rating">Rating:</label>
         <input type="number" name="Rating" min="1" max="5" required />

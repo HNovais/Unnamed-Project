@@ -3,8 +3,6 @@
 }
 
 <h1>Welcome to the Index page!</h1>
-<h1>Welcome, @ViewBag.UserName!</h1>
-
-<a href="@Url.Action("StoreProfile", "Account", new { storeUsername = "novaisStore" })">View my store profile</a>
+<h1>Welcome, @User.Identity.Name!</h1>
 
 @Html.ActionLink("Login", "Login", "Account")

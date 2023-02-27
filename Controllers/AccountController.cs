@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 
 public class AccountController : Controller
 {
@@ -130,7 +131,7 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Login(LoginViewModel model)
+    public async Task<ActionResult> LoginAsync(LoginViewModel model)
     {
         if (ModelState.IsValid)
         {
@@ -141,27 +142,14 @@ public class AccountController : Controller
 
                 if (user != null && VerifyPassword(model.Password, user.Salt, user.Password))
                 {
-                    // User login succeeded, set the user role in the cookie
-                    var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, "User")
-                };
-
-                    var claimsIdentity = new ClaimsIdentity(
-                        claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                    var authProperties = new AuthenticationProperties
-                    {
-                        ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
-                        IssuedUtc = DateTimeOffset.UtcNow,
-                        IsPersistent = true
-                    };
-
-                    HttpContext.SignInAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme,
-                        new ClaimsPrincipal(claimsIdentity),
-                        authProperties);
+                    // Create an authenticated identity
+                    var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Username));
+                    identity.AddClaim(new Claim(ClaimTypes.Name, user.Username));
+                    identity.AddClaim(new Claim(ClaimTypes.Role, "User"));
+                    
+                    // Set the forms authentication ticket
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
                     return RedirectToAction("Index", "Home");
                 }
@@ -172,27 +160,14 @@ public class AccountController : Controller
 
                     if (store != null && VerifyPassword(model.Password, store.Salt, store.Password))
                     {
-                        // Store login succeeded, set the store role in the cookie
-                        var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, store.Username),
-                        new Claim(ClaimTypes.Role, "Store")
-                    };
+                        // Create an authenticated identity
+                        var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
+                        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Username));
+                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Username));
+                        identity.AddClaim(new Claim(ClaimTypes.Role, "Store"));
 
-                        var claimsIdentity = new ClaimsIdentity(
-                            claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                        var authProperties = new AuthenticationProperties
-                        {
-                            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30),
-                            IssuedUtc = DateTimeOffset.UtcNow,
-                            IsPersistent = true
-                        };
-
-                        HttpContext.SignInAsync(
-                            CookieAuthenticationDefaults.AuthenticationScheme,
-                            new ClaimsPrincipal(claimsIdentity),
-                            authProperties);
+                        // Set the forms authentication ticket
+                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
                         return RedirectToAction("Index", "Home");
                     }
