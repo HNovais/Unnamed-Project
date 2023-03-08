@@ -5,26 +5,67 @@
 <h1>@Model.Name</h1>
 <p>@Model.Email</p>
 
+@if (User.IsInRole("User"))
+{
+    if (@Model.UserReview == null)
+    {
+        <h2>Add Review</h2>
+    <form asp-action="AddReview" asp-controller="Store">
+        <input type="hidden" name="StoreUsername" value="@Model.Name" />
+        <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
+        <div>
+            <label for="rating">Rating:</label>
+            <input type="number" name="Rating" min="1" max="5" required />
+        </div>
+        <div>
+            <label for="comment">Comment:</label>
+            <textarea name="Comment"></textarea>
+        </div>
+        <button type="submit">Submit Review</button>
+    </form>
+    }
+    
+    else
+    {
+        <h2>Edit Review</h2>
+        <form asp-action="EditReview" asp-controller="Store">
+            <input type="hidden" name="StoreUsername" value="@Model.Name" />
+            <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
+            <input type="hidden" name="ReviewId" value="@Model.UserReview.Id" />
+            <div>
+                <label for="rating">Rating:</label>
+                <input type="number" name="Rating" min="1" max="5" value="@Model.UserReview.Rating" required />
+            </div>
+            <div>
+                <label for="comment">Comment:</label>
+                <textarea name="Comment">@Model.UserReview.Comment</textarea>
+            </div>
+            <button type="submit">Update Review</button>
+        </form>
+    }
+}
+
+
+<h2>Reviews</h2>
+
+@if(@Model.UserReview != null)
+{
+    <h3>User Review</h3>
+
+    <div class="userReview">
+        <p>Rating: @Model.UserReview.Rating</p>
+        <p>Comment: @Model.UserReview.Comment</p>
+        <p>Posted on: @Model.UserReview.ReviewDate</p>
+    </div>
+}
+
 @foreach (var review in Model.Reviews)
 {
     <div class="review">
         <p>Rating: @review.Rating</p>
+        <p>Reviewer: @review.Reviewer</p>
         <p>Comment: @review.Comment</p>
         <p>Posted on: @review.ReviewDate</p>
     </div>
 }
 
-<h2>Add Review</h2>
-<form asp-action="AddReview" asp-controller="Store">
-    <input type="hidden" name="StoreUsername" value="@Model.Name" />
-    <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
-    <div>
-        <label for="rating">Rating:</label>
-        <input type="number" name="Rating" min="1" max="5" required />
-    </div>
-    <div>
-        <label for="comment">Comment:</label>
-        <textarea name="Comment"></textarea>
-    </div>
-    <button type="submit">Submit Review</button>
-</form>

@@ -21,7 +21,9 @@ public class StoreController : Controller
                     Email = store.Email,
                     // set other properties as needed
 
-                    Reviews = db.Review.Where(r => r.Store == store.Id).ToList()
+                    UserReview = db.Review.SingleOrDefault(r => r.Store == store.Id && r.Reviewer == User.Identity.Name),
+                    Reviews = db.Review.Where(r => r.Store == store.Id && r.Reviewer != User.Identity.Name).ToList()
+                    
                 };
 
                 return View(model);
@@ -48,7 +50,7 @@ public class StoreController : Controller
                     var review = new Review
                     {
                         Store = store.Id,
-                        User = user.Id,
+                        Reviewer = user.Username,
                         Rating = model.Rating,
                         Comment = model.Comment,
                         ReviewDate = DateTime.Now
@@ -57,7 +59,7 @@ public class StoreController : Controller
                     db.Review.Add(review);
                     db.SaveChanges();
 
-                    return RedirectToAction(model.StoreUsername);
+                    return RedirectToAction("StoreProfile", new { store.Username });
                 }
             }
         }
@@ -66,6 +68,28 @@ public class StoreController : Controller
          return View(model);
     }
 
+    [HttpPost]
+    [Authorize(Roles = "User")]
+    [ValidateAntiForgeryToken]
+    public ActionResult EditReview(string storeUsername, string userUsername, int reviewId, int rating, string comment)
+    {
+        using (var db = new MyDbContext())
+        {
+            var store = db.Store.FirstOrDefault(s => s.Username == storeUsername);
+            var review = db.Review.FirstOrDefault(r => r.Id == reviewId && r.Store == store.Id && r.Reviewer == userUsername);
+
+            if (review != null)
+            {
+                review.Rating = rating;
+                review.Comment = comment;
+                review.ReviewDate = DateTime.Now;
+
+                db.SaveChanges();
+            }
+        }
+
+        return RedirectToAction("StoreProfile", new { storeUsername });
+    }
 
 }
 

@@ -98,8 +98,8 @@ public class Review
     public int Store { get; set; }
 
     [Required]
-    [Column("userFK")]
-    public int User { get; set; }
+    [Column("reviewer")]
+    public string Reviewer { get; set; }
 
     [Required]
     [Column("rating")]

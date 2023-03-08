@@ -10,6 +10,7 @@ public class StoreProfileViewModel
     public int ReviewCount { get; set; }
     public double AverageRating { get; set; }
     public List<Review> Reviews { get; set; }
+    public Review UserReview { get; set; }
 }
 
 
