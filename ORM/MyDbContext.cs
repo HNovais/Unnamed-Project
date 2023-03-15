@@ -2,6 +2,7 @@
 using MySql.Data.MySqlClient;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
 using System.Security.Policy;
 
 public class MyDbContext : DbContext
@@ -9,6 +10,7 @@ public class MyDbContext : DbContext
     public DbSet<User> User { get; set; }
     public DbSet<Store> Store { get; set; }
     public DbSet<Review> Review { get; set; }
+    public DbSet<Product> Product { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString = "server=localhost;port=3306;user=root;database=unnamed;password=8426";
@@ -112,4 +114,44 @@ public class Review
     [Required]
     [Column("reviewDate")]
     public DateTime ReviewDate { get; set; }
+}
+
+public class Product
+{
+    [Key]
+    [Column("productID")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("productName")]
+    public string Name { get; set; }
+
+    [Required]
+    [Column("productDescription")]
+    public string Description { get; set; }
+
+    [Required]
+    [Column("productCategory")]
+    public string Category { get; set; }
+
+    [Required]
+    [Column("productPrice")]
+    public float Price { get; set; }
+
+    [Required]
+    [Column("productQuantity")]
+    public int Quantity { get; set; }
+
+    [Required]
+    [Column("productIcon")]
+    public string Icon { get; set; }
+
+    [Required]
+    [Column("productImages")]
+    public string Images { get; set; }
+
+    [Required]
+    [Column("seller")]
+    public int Store { get; set; }
 }

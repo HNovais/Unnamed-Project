@@ -5,24 +5,29 @@
 <h1>@Model.Name</h1>
 <p>@Model.Email</p>
 
+@if (User.IsInRole("Store"))
+{
+    @Html.ActionLink("Add Product", "AddProduct", "Store", new { storeUsername = Model.Name }, null)
+}
+
 @if (User.IsInRole("User"))
 {
     if (@Model.UserReview == null)
     {
         <h2>Add Review</h2>
-    <form asp-action="AddReview" asp-controller="Store">
-        <input type="hidden" name="StoreUsername" value="@Model.Name" />
-        <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
-        <div>
-            <label for="rating">Rating:</label>
-            <input type="number" name="Rating" min="1" max="5" required />
-        </div>
-        <div>
-            <label for="comment">Comment:</label>
-            <textarea name="Comment"></textarea>
-        </div>
-        <button type="submit">Submit Review</button>
-    </form>
+        <form asp-action="AddReview" asp-controller="Store">
+            <input type="hidden" name="StoreUsername" value="@Model.Name" />
+            <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
+            <div>
+                <label for="rating">Rating:</label>
+                <input type="number" name="Rating" min="1" max="5" required />
+            </div>
+            <div>
+                <label for="comment">Comment:</label>
+                <textarea name="Comment"></textarea>
+            </div>
+            <button type="submit">Submit Review</button>
+        </form> 
     }
     
     else

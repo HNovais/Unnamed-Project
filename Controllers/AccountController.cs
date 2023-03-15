@@ -162,8 +162,8 @@ public class AccountController : Controller
                     {
                         // Create an authenticated identity
                         var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
-                        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Username));
-                        identity.AddClaim(new Claim(ClaimTypes.Name, user.Username));
+                        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, store.Username));
+                        identity.AddClaim(new Claim(ClaimTypes.Name, store.Username));
                         identity.AddClaim(new Claim(ClaimTypes.Role, "Store"));
 
                         // Set the forms authentication ticket

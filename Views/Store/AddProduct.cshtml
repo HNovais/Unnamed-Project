@@ -1,0 +1,32 @@
+﻿@using System.Security.Claims;
+
+@model AddProductViewModel
+
+<form asp-action="AddProduct" asp-controller="Store" enctype="multipart/form-data">
+    @Model.Store
+    <input type="hidden" name="Store" value="@Model.Store" />
+    <div>
+        <label for="name">Product name:</label>
+        <textarea name="Name"></textarea>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <textarea name="Description"></textarea>
+    </div>
+    <div>
+        <label for="category">Category:</label>
+        <textarea name="Category"></textarea>
+    </div>
+    <div>
+        <label for="price">Price:</label>
+        <input type="number" name="Price" />
+    </div>
+    <div>
+        <label for="quantity">Quantity:</label>
+        <input type="number" name="Quantity" />
+    </div>
+    <div>
+        <input type="file" name="Image" id="Image">
+    </div>
+    <button type="submit">Submit Product</button>
+</form>
