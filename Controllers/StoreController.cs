@@ -23,8 +23,8 @@ public class StoreController : Controller
                     // set other properties as needed
 
                     UserReview = db.Review.SingleOrDefault(r => r.Store == store.Id && r.Reviewer == User.Identity.Name),
-                    Reviews = db.Review.Where(r => r.Store == store.Id && r.Reviewer != User.Identity.Name).ToList()
-
+                    Reviews = db.Review.Where(r => r.Store == store.Id && r.Reviewer != User.Identity.Name).ToList(),
+                    Products = db.Product.Where(p => p.Store == store.Id).ToList()
                 };
 
                 return View(model);

@@ -53,7 +53,7 @@
 
 <h2>Reviews</h2>
 
-@if(@Model.UserReview != null)
+@if(Model.UserReview != null)
 {
     <h3>User Review</h3>
 
@@ -74,3 +74,13 @@
     </div>
 }
 
+<h2>Products</h2>
+
+@foreach (var product in Model.Products)
+{
+    <div class="product">
+        @product.Icon
+        <p>@product.Name</p>
+        <p>@product.Price</p>€
+    </div>
+}

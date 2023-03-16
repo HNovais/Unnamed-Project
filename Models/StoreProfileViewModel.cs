@@ -11,6 +11,7 @@ public class StoreProfileViewModel
     public double AverageRating { get; set; }
     public List<Review> Reviews { get; set; }
     public Review UserReview { get; set; }
+    public List<Product> Products { get; set; }
 }
 
 
