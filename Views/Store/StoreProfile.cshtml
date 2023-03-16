@@ -79,8 +79,9 @@
 @foreach (var product in Model.Products)
 {
     <div class="product">
-        @product.Icon
-        <p>@product.Name</p>
-        <p>@product.Price</p>€
+        <a href="@Url.Action("ProductPage", "Product", new { id = product.Id })">
+            <img src="@Url.Content("~/Images/" + product.Icon)" widht="250px" height="250px"/>
+        </a>
+        <p>@product.Name    @product.Price€</p>
     </div>
 }

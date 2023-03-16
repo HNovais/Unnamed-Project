@@ -1,0 +1,22 @@
+﻿@using System.Security.Claims;
+
+@model ProductPageViewModel
+
+<h1>@Model.Name</h1>
+
+<p>@Model.Description</p>
+
+<p>Category: @Model.Category</p>
+
+<p>Price: @Model.Price</p>
+
+<p>Seller: @Model.Seller</p>
+
+<div class="row">
+    @foreach (var image in Model.Images)
+    {
+        <div class="col-sm-2">
+            <img src="@Url.Content("~/Images/" + Model.Images)" width="500px" height="500px" />
+        </div>
+    }
+</div>
