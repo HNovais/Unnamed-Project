@@ -131,12 +131,15 @@ public class ProductController : Controller
 
             if (product != null)
             {
-                var model = new AddProductViewModel
+                var model = new EditProductViewModel
                 {
+                    Id = productId,
                     Name = product.Name,
                     Description = product.Description,
                     Category = product.Category,
-                    Price = product.Price
+                    Price = product.Price,
+                    Quantity = product.Quantity,
+                    Store = storeName
                 };
 
                 return View(model);
@@ -144,6 +147,49 @@ public class ProductController : Controller
 
             return RedirectToAction("Index", "Home");
         }
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Store")]
+    [ValidateAntiForgeryToken]
+    public IActionResult EditProduct(EditProductViewModel model, IFormFile Image, string Store, int Id)
+    {
+        if (ModelState.IsValid)
+        {
+            using (var db = new MyDbContext())
+            {
+                var product = db.Product.FirstOrDefault(p => p.Id == Id);
+
+                if (product != null && User.Identity.Name.ToLower() == Store.ToLower())
+                {
+                    product.Name = model.Name;
+                    product.Description = model.Description;
+                    product.Category = model.Category;
+                    product.Price = model.Price;
+                    product.Quantity = model.Quantity;
+
+                    if (Image != null && Image.Length > 0)
+                    {
+                        var fileName = Path.GetFileName(Image.FileName);
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", fileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            Image.CopyToAsync(fileStream);
+                        }
+
+                        product.Icon = fileName;
+                        product.Images = fileName;
+                    }
+
+                    db.SaveChanges();
+
+                    return RedirectToAction("ProductPage", new { productId = product.Id, storeName = Store });
+                }
+            }
+        }
+
+        return View(model);
     }
 }
 

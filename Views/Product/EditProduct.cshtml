@@ -1,9 +1,10 @@
 ﻿@using System.Security.Claims;
 
-@model AddProductViewModel
+@model EditProductViewModel
 
-<form asp-action="AddProduct" asp-controller="Product" enctype="multipart/form-data">
+<form asp-action="EditProduct" asp-controller="Product" enctype="multipart/form-data">
     @Model.Store
+    <input type="hidden" name="Id" value="@Model.Id" />
     <input type="hidden" name="Store" value="@Model.Store" />
     <div>
         <label for="name">Product name:</label>
