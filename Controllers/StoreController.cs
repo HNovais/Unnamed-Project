@@ -34,20 +34,6 @@ public class StoreController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    [HttpGet]
-    [Authorize(Roles = "Store")]
-    public ActionResult AddProduct(string storeUsername)
-    {
-        Console.WriteLine(storeUsername);
-        var model = new AddProductViewModel
-        {
-            Store = storeUsername
-        };
-
-        return View(model);
-
-    }
-
     [HttpPost]
     [Authorize(Roles = "User")]
     [ValidateAntiForgeryToken]
@@ -104,66 +90,6 @@ public class StoreController : Controller
         }
 
         return RedirectToAction("StoreProfile", new { storeUsername });
-    }
-
-    [HttpPost]
-    [Authorize(Roles = "Store")]
-    [ValidateAntiForgeryToken]
-    public IActionResult AddProduct(AddProductViewModel model, IFormFile Image, string Store)
-    {
-        
-        if (Image != null && Image.Length > 0)
-        {
-            var fileName = Path.GetFileName(Image.FileName);
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", fileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                Image.CopyToAsync(fileStream);
-            }
-
-            if (!ModelState.IsValid)
-            {
-                foreach (var key in ModelState.Keys)
-                {
-                    var state = ModelState[key];
-                    foreach (var error in state.Errors)
-                    {
-                        Console.WriteLine($"{key}: {error.ErrorMessage}");
-                    }
-                }
-            }
-
-            if (ModelState.IsValid)
-            {
-                using (var db = new MyDbContext())
-                {
-                    var store = db.Store.FirstOrDefault(s => s.Username == model.Store);
-
-                    if (store != null)
-                    {
-
-                        var product = new Product
-                        {
-                            Name = model.Name,
-                            Description = model.Description,
-                            Category = model.Category,
-                            Price = model.Price,
-                            Quantity = model.Quantity,
-                            Store = store.Id,
-                            Icon = fileName
-                        };
-
-                        db.Product.Add(product);
-                        db.SaveChanges();
-                    }
-
-                    return RedirectToAction("StoreProfile", new { storeUsername = model.Store });
-                    }
-                }
-            }
-
-        return View(model);
     }
 }
 

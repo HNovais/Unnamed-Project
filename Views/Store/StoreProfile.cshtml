@@ -4,10 +4,11 @@
 
 <h1>@Model.Name</h1>
 <p>@Model.Email</p>
+<p>@User.Identity.Name</p>
 
-@if (User.IsInRole("Store"))
+@if (User.IsInRole("Store") && User.Identity.Name.ToLower() == Model.Name.ToLower())
 {
-    @Html.ActionLink("Add Product", "AddProduct", "Store", new { storeUsername = Model.Name }, null)
+    @Html.ActionLink("Add Product", "AddProduct", "Product", new { storeUsername = Model.Name }, null)
 }
 
 @if (User.IsInRole("User"))
@@ -79,9 +80,18 @@
 @foreach (var product in Model.Products)
 {
     <div class="product">
-        <a href="@Url.Action("ProductPage", "Product", new { productId = product.Id })">
+        <a href="@Url.Action("ProductPage", "Product", new { productId = product.Id , storeName = Model.Name})">
             <img src="@Url.Content("~/Images/" + product.Icon)" width="250px" height="250px" />
         </a>
         <p>@product.Name @product.Price€</p>
+        @if (User.Identity.Name.ToLower() == Model.Name.ToLower())
+        {
+            <a href="@Url.Action("EditProduct", "Product", new { productId = product.Id, storeName = Model.Name })">Edit</a>
+            <form action="@Url.Action("DeleteProduct", "Product", new { productId = product.Id, storeName = Model.Name })" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="productId" value="@product.Id" />
+                <button type="submit">Delete</button>
+            </form>
+        }
     </div>
 }
