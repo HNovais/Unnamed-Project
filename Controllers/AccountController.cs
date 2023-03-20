@@ -7,6 +7,9 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 public class AccountController : Controller
 {
@@ -26,6 +29,55 @@ public class AccountController : Controller
     public ActionResult Login()
     {
         return View();
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "User")]
+    public ActionResult ShoppingCart()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        using (var db = new MyDbContext())
+        {
+            var cart = db.Cart.FirstOrDefault(c => c.User == userId);
+
+            if (cart == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var cartItems = new List<CartItemViewModel>();
+            List<CartProduct> cartProducts = db.CartProduct.Where(cp => cp.Cart == cart.Id).ToList();
+            
+            foreach (var cartProduct in cartProducts)
+            {
+                var product = db.Product.FirstOrDefault(p => p.Id == cartProduct.Product);
+
+                if (product == null)
+                {
+                    continue;
+                }
+
+                var cartItem = new CartItemViewModel
+                {
+                    CartItemId = cartProduct.Id,
+                    ProductId = cartProduct.Product,
+                    ProductName = product.Name,
+                    Price = product.Price,
+                    Quantity = cartProduct.Quantity
+                };
+
+                cartItems.Add(cartItem);
+            }
+
+            var viewModel = new ShoppingCartViewModel
+            {
+                CartItems = cartItems,
+                TotalPrice = cartItems.Sum(ci => ci.Price * ci.Quantity)
+            };
+            
+            return View(viewModel);
+        }
     }
 
     [HttpPost]

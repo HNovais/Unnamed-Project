@@ -11,6 +11,8 @@ public class MyDbContext : DbContext
     public DbSet<Store> Store { get; set; }
     public DbSet<Review> Review { get; set; }
     public DbSet<Product> Product { get; set; }
+    public DbSet<Cart> Cart { get; set; }
+    public DbSet<CartProduct> CartProduct { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString = "server=localhost;port=3306;user=root;database=unnamed;password=8426";
@@ -154,4 +156,40 @@ public class Product
     [Required]
     [Column("seller")]
     public int Store { get; set; }
+}
+
+public class Cart
+{
+    [Key]
+    [Column("cartID")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("userCart")]
+    public string User { get; set; }
+
+    [Required]
+    [Column("lastUpdate")]
+    public DateTime Time { get; set; }
+}
+
+public class CartProduct
+{
+    [Key]
+    [Column("cpID")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("cartFK")]
+    public int Cart { get; set; }
+
+    [Required]
+    [Column("productFK")]
+    public int Product { get; set; }
+
+    [Required]
+    [Column("cpQuantity")]
+    public int Quantity { get; set; }
 }

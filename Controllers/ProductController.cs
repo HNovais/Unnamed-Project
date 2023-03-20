@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using unnamed.Models;
 
 public class ProductController : Controller
@@ -190,6 +192,65 @@ public class ProductController : Controller
         }
 
         return View(model);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "User")]
+    [ValidateAntiForgeryToken]
+    public ActionResult AddToCart(int productID, string seller)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        using (var db = new MyDbContext())
+        {
+            var cart = db.Cart.FirstOrDefault(c => c.User == userId);
+
+            if (cart == null)
+            {
+                cart = new Cart
+                {
+                    User = userId,
+                    Time = DateTime.Now
+                };
+
+                db.Cart.Add(cart);
+
+                db.SaveChanges();
+            }
+
+            else
+            {
+                cart.Time = DateTime.Now;
+            }
+
+            var product = db.Product.FirstOrDefault(p => p.Id == productID);
+
+            if (product != null)
+            {
+                var cartProduct = db.CartProduct.FirstOrDefault(cp => cp.Cart == cart.Id && cp.Product == productID);
+
+                if (cartProduct == null)
+                {
+                    cartProduct = new CartProduct
+                    {
+                        Cart = cart.Id,
+                        Product = productID,
+                        Quantity = 1
+                    };
+
+                    db.CartProduct.Add(cartProduct);
+                }
+
+                else
+                {
+                    cartProduct.Quantity += 1;
+                }
+            }
+
+            db.SaveChanges();
+
+            return RedirectToAction("ProductPage", new { productId = productID, storeName = seller });
+        }
     }
 }
 

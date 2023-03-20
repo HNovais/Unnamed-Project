@@ -20,3 +20,10 @@
         </div>
     }
 </div>
+
+<form method="post" action="@Url.Action("AddToCart", "Product")">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="productID" value="@Model.Id" />
+    <input type="hidden" name="store" value="@Model.Seller" />
+    <button type="submit">Add to Cart</button>
+</form>
