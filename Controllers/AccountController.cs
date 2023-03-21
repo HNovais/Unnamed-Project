@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Principal;
 
 public class AccountController : Controller
 {
@@ -77,6 +78,46 @@ public class AccountController : Controller
             };
             
             return View(viewModel);
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult DecrementQuantity(int id, int quantity)
+    {
+        using (var db = new MyDbContext())
+        {
+            var cartProduct = db.CartProduct.FirstOrDefault(cp => cp.Id == id);
+
+            if (cartProduct != null)
+            {
+                if (quantity >= 2)
+                    cartProduct.Quantity -= 1;
+
+                else
+                    db.Remove(cartProduct);
+            }
+
+            db.SaveChanges();
+
+            return RedirectToAction("ShoppingCart", "Account");
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult IncrementQuantity(int id)
+    {
+        using (var db = new MyDbContext())
+        {
+            var cartProduct = db.CartProduct.FirstOrDefault(cp => cp.Id == id);
+
+            if (cartProduct != null)
+                cartProduct.Quantity += 1;
+
+            db.SaveChanges();
+
+            return RedirectToAction("ShoppingCart", "Account");
         }
     }
 

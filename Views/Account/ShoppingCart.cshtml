@@ -25,7 +25,20 @@ else
                 <tr>
                     <td>@item.ProductName</td>
                     <td>@item.Price€</td>
-                    <td>@item.Quantity</td>
+                    <td>
+                        <form method="post" action="@Url.Action("IncrementQuantity", "Account")">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.CartItemId" />
+                            <button type="submit">+</button>
+                        </form>
+                        @item.Quantity
+                        <form method="post" action="@Url.Action("DecrementQuantity", "Account")">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.CartItemId" />
+                            <input type="hidden" name="quantity" value="@item.Quantity" />
+                            <button type="submit">-</button>
+                        </form>
+                    </td>
                     <td>@item.Subtotal€</td>
                 </tr>
             }
