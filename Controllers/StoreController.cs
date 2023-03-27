@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
+using System.Diagnostics;
 using static System.Net.Mime.MediaTypeNames;
 
 public class StoreController : Controller
@@ -32,6 +33,72 @@ public class StoreController : Controller
         }
 
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Store")]
+    [ValidateAntiForgeryToken]
+    public ActionResult EditProfile(string storeUsername)
+    {
+        using (var db = new MyDbContext())
+        {
+            var store = db.Store.FirstOrDefault(r => r.Username == storeUsername);
+
+            if (store != null)
+            {
+                var model = new EditProfileViewModel
+                {
+                    Name = store.Name,
+                    Email = store.Email,
+                };
+
+                return View(model);
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Store")]
+    public ActionResult EditProfile(EditProfileViewModel model, string storeUsername, IFormFile Image)
+    {
+        if (Image != null && Image.Length > 0)
+        {
+            var fileName = Path.GetFileName(Image.FileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", fileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                Image.CopyToAsync(fileStream);
+            }
+
+            if (ModelState.IsValid)
+            {
+                using (var db = new MyDbContext())
+                {
+                    var store = db.Store.FirstOrDefault(s => s.Username == storeUsername);
+
+                    if (store != null)
+                    {
+                        store.Name = model.Name;
+                        store.Email = model.Email;
+                        store.Phone = model.Phone;
+                        store.County = model.County;
+                        store.District = model.District;
+                        store.Instagram = model.Instagram;
+                        store.Facebook = model.Facebook;
+                        store.Icon = fileName;
+
+                        db.SaveChanges();
+                    }
+
+                    return RedirectToAction("StoreProfile", "Store", new { storeUsername });
+                }
+            }
+        }
+
+        return View(model);
     }
 
     [HttpPost]

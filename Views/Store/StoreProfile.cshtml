@@ -6,8 +6,10 @@
 <p>@Model.Email</p>
 <p>@User.Identity.Name</p>
 
+
 @if (User.IsInRole("Store") && User.Identity.Name.ToLower() == Model.Name.ToLower())
 {
+    @Html.ActionLink("Edit Profile", "EditProfile", "Store", new { storeUsername = User.Identity.Name }, null)
     @Html.ActionLink("Add Product", "AddProduct", "Product", new { storeUsername = Model.Name }, null)
 }
 

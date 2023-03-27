@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Principal;
+using static System.Net.Mime.MediaTypeNames;
 
 public class AccountController : Controller
 {
@@ -173,48 +174,64 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult RegisterStore(RegisterStoreViewModel model)
+    public ActionResult RegisterStore(RegisterStoreViewModel model, IFormFile Image)
     {
-        if (ModelState.IsValid)
+        if (Image != null && Image.Length > 0)
         {
-            using (var db = new MyDbContext())
+            var fileName = Path.GetFileName(Image.FileName);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", fileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
-                // Check if the username already exists in the database
-                if (db.Store.Any(u => u.Username == model.Username))
+                Image.CopyToAsync(fileStream);
+            }
+
+            if (ModelState.IsValid)
+            {
+                using (var db = new MyDbContext())
                 {
-                    ModelState.AddModelError("Username", "The username already exists");
-                }
-
-                else if (db.Store.Any(u => u.Email == model.Email))
-                {
-                    ModelState.AddModelError("Email", "It already exists an account with this e-mail");
-                }
-
-                else
-                {
-                    // Generate a random salt
-                    var salt = GenerateSalt();
-
-                    // Hash the password with the salt using SHA256
-                    var hashedPassword = GetHashedPassword(model.Password, salt);
-
-                    // Create a new user using the model data
-                    var store = new Store
+                    // Check if the username already exists in the database
+                    if (db.Store.Any(u => u.Username == model.Username))
                     {
-                        Name = model.Name,
-                        Username = model.Username,
-                        Email = model.Email,
-                        Phone = model.Phone,
-                        Password = hashedPassword,
-                        Salt = salt
-                    };
+                        ModelState.AddModelError("Username", "The username already exists");
+                    }
 
-                    // Add the user to the Users DbSet and save changes to the database
-                    db.Store.Add(store);
-                    db.SaveChanges();
+                    else if (db.Store.Any(u => u.Email == model.Email))
+                    {
+                        ModelState.AddModelError("Email", "It already exists an account with this e-mail");
+                    }
 
-                    // Redirect to the appropriate page after registration
-                    return RedirectToAction("Index", "Home");
+                    else
+                    {
+                        // Generate a random salt
+                        var salt = GenerateSalt();
+
+                        // Hash the password with the salt using SHA256
+                        var hashedPassword = GetHashedPassword(model.Password, salt);
+
+                        // Create a new user using the model data
+                        var store = new Store
+                        {
+                            Name = model.Name,
+                            Username = model.Username,
+                            Email = model.Email,
+                            Phone = model.Phone,
+                            Password = hashedPassword,
+                            Salt = salt,
+                            County = model.County,
+                            District = model.District,
+                            Instagram = model.Instagram,
+                            Facebook = model.Facebook,
+                            Icon = fileName
+                        };
+
+                        // Add the user to the Users DbSet and save changes to the database
+                        db.Store.Add(store);
+                        db.SaveChanges();
+
+                        // Redirect to the appropriate page after registration
+                        return RedirectToAction("Index", "Home");
+                    }
                 }
             }
         }
@@ -232,6 +249,7 @@ public class AccountController : Controller
             {
                 // Try to find a user with the provided username or email
                 var user = db.User.FirstOrDefault(u => u.Username == model.UsernameOrEmail || u.Email == model.UsernameOrEmail);
+                var admin = db.Admin.FirstOrDefault(a => a.Username == model.UsernameOrEmail);
 
                 if (user != null && VerifyPassword(model.Password, user.Salt, user.Password))
                 {
@@ -239,7 +257,11 @@ public class AccountController : Controller
                     var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
                     identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Username));
                     identity.AddClaim(new Claim(ClaimTypes.Name, user.Username));
-                    identity.AddClaim(new Claim(ClaimTypes.Role, "User"));
+
+                    if(admin != null)
+                        identity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
+                    else
+                        identity.AddClaim(new Claim(ClaimTypes.Role, "User"));
                     
                     // Set the forms authentication ticket
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
@@ -274,6 +296,7 @@ public class AccountController : Controller
 
         return View(model);
     }
+
 
     private bool VerifyPassword(string enteredPassword, string storedSalt, string storedHashedPassword)
     {

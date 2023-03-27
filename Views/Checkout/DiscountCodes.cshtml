@@ -1,0 +1,43 @@
+﻿@using System.Security.Claims;
+
+@model DiscountCodesViewModel
+
+<h2>Discount Codes</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Code</th>
+            <th>Type</th>
+            <th>Value</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Usage Limit</th>
+            <th>Usage Count</th>
+            <th>Active</th>
+            <th>Creation Date</th>
+            <th>Last Update</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var code in Model.DiscountCodes)
+        {
+            <tr>
+                <td>@code.Id</td>
+                <td>@code.Code</td>
+                <td>@code.Type</td>
+                <td>@code.Value</td>
+                <td>@code.Start.ToString("yyyy-MM-dd")</td>
+                <td>@code.End.ToString("yyyy-MM-dd")</td>
+                <td>@(code.Limit != null ? code.Limit.ToString() : "")</td>
+                <td>@code.Count</td>
+                <td>@(code.IsActive ? "Yes" : "No")</td>
+                <td>@code.CreationDate.ToString("yyyy-MM-dd")</td>
+                <td>@code.UpdateDate.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@Html.ActionLink("Add Discount", "AddDiscount", "Checkout")

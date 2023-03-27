@@ -13,6 +13,8 @@ public class MyDbContext : DbContext
     public DbSet<Product> Product { get; set; }
     public DbSet<Cart> Cart { get; set; }
     public DbSet<CartProduct> CartProduct { get; set; }
+    public DbSet<Admin> Admin { get; set; }
+    public DbSet<DiscountCode> DiscountCode { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString = "server=localhost;port=3306;user=root;database=unnamed;password=8426";
@@ -88,6 +90,26 @@ public class Store
     [Column("storePhone")]
     [StringLength(50)]
     public string Phone { get; set; }
+
+    [Column("instagram")]
+    [StringLength(50)]
+    public string Instagram { get; set; }
+
+    [Column("facebook")]
+    [StringLength(50)]
+    public string Facebook { get; set; }
+
+    [Column("county")]
+    [StringLength(50)]
+    public string County { get; set; }
+
+    [Column("district")]
+    [StringLength(50)]
+    public string District { get; set; }
+
+    [Column("storeIcon")]
+    [StringLength(250)]
+    public string Icon { get; set; }
 }
 
 public class Review
@@ -192,4 +214,63 @@ public class CartProduct
     [Required]
     [Column("cpQuantity")]
     public int Quantity { get; set; }
+}
+
+public class Admin
+{
+    [Key]
+    [Column("adminID")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("adminUsername")]
+    public string Username { get; set; }
+}
+
+public class DiscountCode
+{
+    [Key]
+    [Column("discountID")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("discountCode")]
+    public string Code { get; set; }
+
+    [Required]
+    [Column("discountType")]
+    public string Type { get; set; }
+
+    [Required]
+    [Column("discountValue")]
+    public string Value { get; set; }
+
+    [Required]
+    [Column("discountStart")]
+    public DateTime Start { get; set; }
+
+    [Required]
+    [Column("discountEnd")]
+    public DateTime End { get; set; }
+
+    [Column("usageLimit")]
+    public int? Limit { get; set; }
+
+    [Required]
+    [Column("usageCount")]
+    public int Count { get; set; }
+
+    [Required]
+    [Column("discountActive")]
+    public bool IsActive { get; set; }
+
+    [Required]
+    [Column("discountCreation")]
+    public DateTime CreationDate { get; set; }
+
+    [Required]
+    [Column("discountUpdate")]
+    public DateTime UpdateDate { get; set; }
 }

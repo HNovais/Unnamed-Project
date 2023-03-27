@@ -30,6 +30,13 @@ namespace unnamed.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-
+        public ActionResult Search(string searchQuery)
+        {
+            using (var db = new MyDbContext())
+            {
+                var results = db.Store.Where(i => i.Name.Contains(searchQuery)).ToList();
+                return View(results);
+            }
+        }
     }
 }

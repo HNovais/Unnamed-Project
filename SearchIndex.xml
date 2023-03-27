@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<SearchDefinition xmlns="http://schemas.microsoft.com/Search/2008/">
+  <Fields>
+    <Field Name="ProductName" Type="System.String" />
+    <Field Name="Store" Type="System.String" />
+  </Fields>
+  <KeywordIndex />
+  <DefaultIndex />
+</SearchDefinition>
