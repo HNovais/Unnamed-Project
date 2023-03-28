@@ -68,5 +68,27 @@ public class CheckoutController : Controller
             return View(model);
         }
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
+    public ActionResult DeleteDiscount(int id)
+    {
+        using (var db = new MyDbContext())
+        {
+            var discountCode = db.DiscountCode.FirstOrDefault(d => d.Id == id);
+
+            if (discountCode != null)
+            {
+                db.DiscountCode.Remove(discountCode);
+                db.SaveChanges();
+
+                return RedirectToAction("DiscountCodes", "Checkout");
+            }     
+
+            return RedirectToAction("Index", "Home");
+        }
+    }
+
 }
 
