@@ -16,8 +16,6 @@ public class CheckoutController : Controller
     [ValidateAntiForgeryToken]
     public ActionResult AddDiscount(AddDiscountViewModel model)
     {
-        model.Value = "None";
-
         if (ModelState.IsValid)
         {
             using (var db = new MyDbContext())
