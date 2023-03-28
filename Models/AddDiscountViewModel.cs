@@ -4,7 +4,7 @@ public class AddDiscountViewModel
 { 
     public string Code { get; set; }
     public string Type { get; set; }
-    public string Value { get; set; }
+    public string? Value { get; set; }
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
     public int? Limit { get; set; }

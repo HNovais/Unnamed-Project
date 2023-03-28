@@ -14,16 +14,47 @@
         <input asp-for="Code" class="form-control" />
         <span asp-validation-for="Code" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="Type">Discount Type:</label>
-        <input asp-for="Type" class="form-control" />
+        <select asp-for="Type" class="form-control" onchange="showInput(this)">
+            <option value="Percentage">Percentage</option>
+            <option value="Value">Value</option>
+            <option value="Shipping">Shipping</option>
+        </select>
         <span asp-validation-for="Type" class="text-danger"></span>
     </div>
-    <div class="form-group">
+
+    <div class="form-group" id="valueInput" style="display:none">
         <label asp-for="Value">Discount Value:</label>
-        <input asp-for="Value" class="form-control" />
+        <div class="input-group">
+            <input asp-for="Value" class="form-control" />
+            <div class="input-group-append">
+                <span class="input-group-text" id="valueSuffix"></span>
+            </div>
+        </div>
         <span asp-validation-for="Value" class="text-danger"></span>
     </div>
+
+    <script>
+        function showInput(element) {
+            var selectedValue = element.value;
+            var valueInput = document.getElementById('valueInput');
+            var valueSuffix = document.getElementById('valueSuffix');
+
+            if (selectedValue === "Percentage") {
+                valueInput.style.display = "block";
+                valueSuffix.innerHTML = "%";
+            } else if (selectedValue === "Value") {
+                valueInput.style.display = "block";
+                valueSuffix.innerHTML = "€";
+            } else {
+                valueInput.style.display = "none";
+                valueSuffix.innerHTML = "";
+            }
+        }
+    </script>
+
     <div class="form-group">
         <label asp-for="Start">Discount Start Date:</label>
         <input asp-for="Start" class="form-control" type="date" />

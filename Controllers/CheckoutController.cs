@@ -16,15 +16,27 @@ public class CheckoutController : Controller
     [ValidateAntiForgeryToken]
     public ActionResult AddDiscount(AddDiscountViewModel model)
     {
+        model.Value = "None";
+
         if (ModelState.IsValid)
         {
             using (var db = new MyDbContext())
             {
+                string value = model.Value;
+                if (model.Type == "Shipping")
+                {
+                    value = "Free Shipping";
+                }
+                else
+                {
+                    value = model.Value;
+                }
+
                 var discountCode = new DiscountCode
                 {
                     Code = model.Code,
                     Type = model.Type,
-                    Value = model.Value,
+                    Value = value,
                     Start = model.Start,
                     End = model.End,
                     Limit = model.Limit,
