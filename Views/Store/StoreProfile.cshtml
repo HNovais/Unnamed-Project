@@ -9,7 +9,10 @@
 
 @if (User.IsInRole("Store") && User.Identity.Name.ToLower() == Model.Name.ToLower())
 {
-    @Html.ActionLink("Edit Profile", "EditProfile", "Store", new { storeUsername = User.Identity.Name }, null)
+    <form action="@Url.Action("EditProfile", "Store", new { storeUsername = User.Identity.Name })" method="get" >
+        @Html.AntiForgeryToken()
+        <button type="submit">Edit Profile</button>
+    </form>
     @Html.ActionLink("Add Product", "AddProduct", "Product", new { storeUsername = Model.Name }, null)
 }
 

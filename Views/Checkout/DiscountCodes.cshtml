@@ -18,6 +18,7 @@
             <th>Active</th>
             <th>Creation Date</th>
             <th>Last Update</th>
+            <th>Edit</th>
             <th>Delete</th>
         </tr>
     </thead>
@@ -36,6 +37,11 @@
                 <td>@(code.IsActive ? "Yes" : "No")</td>
                 <td>@code.CreationDate.ToString("yyyy-MM-dd")</td>
                 <td>@code.UpdateDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <form href="@Url.Action("EditDiscount", "Checkout", new { id = code.Id })">
+                        <button type="submit">X</button>
+                    </form>
+                </td>
                 <td>
                     <form action="@Url.Action("DeleteDiscount", "Checkout", new { id = code.Id })" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
                         @Html.AntiForgeryToken()

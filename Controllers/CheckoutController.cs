@@ -65,9 +65,78 @@ public class CheckoutController : Controller
                 DiscountCodes = db.DiscountCode.ToList()
             };
 
+            DateTime now = DateTime.Now;
+
+            foreach (var discount in model.DiscountCodes){
+                if (discount.Start < now && discount.End > now)
+                    discount.IsActive = true;
+            }
+
+            db.SaveChanges();
+
             return View(model);
         }
     }
+
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public ActionResult EditDiscount(int id)
+    {
+        using (var db = new MyDbContext())
+        {
+            var discount = db.DiscountCode.FirstOrDefault(x => x.Id == id);
+
+            var model = new AddDiscountViewModel
+            {
+                Id = id,
+                Code = discount.Code,
+                Type = discount.Type,
+                Value = discount.Value,
+                Start = discount.Start,
+                End = discount.End,
+                Limit = discount.Limit,
+                isActive = discount.IsActive,
+                Creation = discount.CreationDate,
+                Updated = discount.UpdateDate
+            };
+
+            return RedirectToAction("EditDiscount", "Checkout", new { id }); 
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin")]
+    public ActionResult EditDiscount(AddDiscountViewModel model, int id)
+    {
+        if (ModelState.IsValid)
+        {
+            using (var db = new MyDbContext())
+            {
+                var discount = db.DiscountCode.FirstOrDefault(x => x.Id == id);
+
+                if (discount != null)
+                {
+                    discount.Code = model.Code;
+                    discount.Type = model.Type;
+                    discount.Value = model.Value;
+                    discount.Start = model.Start;
+                    discount.End = model.End;
+                    discount.Limit = model.Limit;
+                    discount.IsActive = model.isActive;
+                    discount.CreationDate = model.Creation;
+                    discount.UpdateDate = DateTime.Now;
+
+                    db.SaveChanges();
+                }
+
+                return RedirectToAction("DiscountCodes", "Checkout");
+            }
+        }
+
+        return View(id);
+    }
+
 
     [HttpPost]
     [ValidateAntiForgeryToken]
