@@ -57,7 +57,7 @@ else
 @if (User.Identity.IsAuthenticated)
 {
     <p>
-        <a href="@Url.Action("Checkout", "Cart")">Checkout</a>
+        <a href="@Url.Action("Checkout", "Checkout", new { cart = Model.CartItems, subtotal = Model.TotalPrice, shipping = 3, discount = 0} )">Checkout</a>
     </p>
 }
 else

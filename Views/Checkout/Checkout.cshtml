@@ -1,0 +1,65 @@
+﻿@model CheckoutViewModel
+
+<h2>Checkout</h2>
+
+<div>
+    <h3>Order Summary</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Price</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Subtotal</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3">Subtotal</td>
+                <td>@Model.Subtotal</td>
+            </tr>
+            <tr>
+                <td colspan="3">Tax (@Model.Shipping)</td>
+                <td>@Model.Shipping</td>
+            </tr>
+            <tr>
+                <td colspan="3">Discount</td>
+                <td>@Model.Discount</td>
+            </tr>
+            <tr>
+                <td colspan="3"><strong>Total</strong></td>
+                <td><strong>@Model.Total</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div>
+    <h3>Discount Codes</h3>
+    <form method="post" action="/Checkout/ApplyDiscount">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Items" value="@Model.Items" />
+        <div class="form-group">
+            <label asp-for="DiscountCode">Discount Code:</label>
+            <div class="input-group">
+                <input asp-for="DiscountCode" class="form-control" />
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </div>
+            <span asp-validation-for="DiscountCode" class="text-danger"></span>
+        </div>
+    </form>
+</div>
+

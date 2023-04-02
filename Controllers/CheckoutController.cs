@@ -1,9 +1,129 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Security.Claims;
 
 public class CheckoutController : Controller
 {
+    [HttpGet]
+    [Authorize(Roles = "User")]
+    public ActionResult Checkout()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        using (var db = new MyDbContext())
+        {
+            var cart = db.Cart.FirstOrDefault(c => c.User == userId);
+
+            if (cart == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var cartItems = new List<CartItemViewModel>();
+            List<CartProduct> cartProducts = db.CartProduct.Where(cp => cp.Cart == cart.Id).ToList();
+
+            foreach (var cartProduct in cartProducts)
+            {
+                var product = db.Product.FirstOrDefault(p => p.Id == cartProduct.Product);
+
+                if (product == null)
+                {
+                    continue;
+                }
+
+                var cartItem = new CartItemViewModel
+                {
+                    CartItemId = cartProduct.Id,
+                    ProductId = cartProduct.Product,
+                    ProductName = product.Name,
+                    Price = product.Price,
+                    Quantity = cartProduct.Quantity
+                };
+
+                cartItems.Add(cartItem);
+            }
+
+            var model = new CheckoutViewModel
+            {
+                Items = cartItems,
+                Subtotal = cartItems.Sum(ci => ci.Price * ci.Quantity),
+                Shipping = 3,
+                Total = cartItems.Sum(ci => ci.Price * ci.Quantity) + 3,
+                Discount = 0,
+            };
+
+            return View(model);
+        }
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "User")]
+    [ValidateAntiForgeryToken]
+    public IActionResult ApplyDiscount(CheckoutViewModel model, List<CartItemViewModel> Items)
+    {
+        model.Items = Items;
+        using (var db = new MyDbContext())
+        {
+            var discountCode = db.DiscountCode.FirstOrDefault(dc => dc.Code == model.DiscountCode);
+
+            if (discountCode != null)
+            {
+                if (discountCode.IsActive)
+                {
+                    if ((discountCode.Limit != null && discountCode.Count >= discountCode.Limit) || discountCode.Start > DateTime.Now || discountCode.End < DateTime.Now)
+                        discountCode.IsActive = false;
+                }  
+                else
+                {
+                    if ((discountCode.Limit == null || discountCode.Count < discountCode.Limit) &&
+                        (discountCode.Start == null || discountCode.Start <= DateTime.Now) &&
+                        (discountCode.End == null || discountCode.End >= DateTime.Now))
+                        discountCode.IsActive = true;
+                }
+                    
+
+                db.SaveChanges();
+
+                float discount = 0;
+                int value = 0;
+
+                if (discountCode.IsActive)
+                {
+                    if (discountCode.Value != "Free Shipping")
+                    {
+                        int v = int.Parse(discountCode.Value);
+                        value = v;
+                    }
+
+                    if (discountCode.Type == "Percentage")
+                        discount = model.Subtotal * (value / 100);
+                    else if (discountCode.Type == "Value")
+                        discount = value;
+                    else if (discountCode.Type == "Shipping")
+                        model.Shipping = 0;
+
+                    model.Discount = discount;
+                    model.Total = model.Subtotal + model.Shipping - model.Discount;
+                }
+                else
+                {
+                    ModelState.AddModelError("DiscountCode", "Invalid discount code");
+                    return View("Checkout", model);
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("DiscountCode", "Invalid discount code");
+                return View("Checkout", model);
+            }
+
+            return View("Checkout", model);
+        }
+    }
+
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public ActionResult AddDiscount()
@@ -158,6 +278,5 @@ public class CheckoutController : Controller
             return RedirectToAction("Index", "Home");
         }
     }
-
 }
 
