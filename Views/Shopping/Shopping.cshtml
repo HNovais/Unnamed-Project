@@ -1,54 +1,93 @@
 ﻿@model ShoppingViewModel
 
 <div class="container">
-    <button id="filter-btn">Filter</button>
-    <div id="filter-options" class="filter-collapsed">
-        <h4>Store Filter</h4>
-        <label for="county-select">County:</label>
-        <select id="county-select" name="county" asp-for="County">
-            <option value="">All</option>
-            @foreach (var county in Model.DistrictCounties.Keys)
-            {
-                <option value="@county">@county</option>
-            }
-        </select>
+    <form id="shopping-form" asp-controller="Shopping" asp-action="Shopping" method="get">
+        <div id="filter-options" class="filter-collapsed">
 
-        <label for="district-select">District:</label>
-        <select id="district-select" name="district" asp-for="District">
-            <option value="">All</option>
-            @if (!string.IsNullOrEmpty(Model.County) && Model.DistrictCounties.ContainsKey(Model.County))
-            {
-                var districts = Model.DistrictCounties[Model.County];
-                foreach (var district in districts)
+            <h4>Store Filter</h4>
+
+            <label for="district-select">District:</label>
+            <select id="district-select" name="district" asp-for="District">
+                <option value="">All</option>
+                @foreach (var district in Model.DistrictCounties.Keys)
                 {
                     <option value="@district">@district</option>
                 }
-            }
-            else
-            {
-                foreach (var districts in Model.DistrictCounties.Values)
+            </select>
+
+            <label for="county-select" id="county-select-label" style="display: none;">County:</label>
+            <select id="county-select" name="county" asp-for="County" disabled style="display: none;">
+                <option value="">All</option>
+                @foreach (var district in Model.DistrictCounties.Keys)
                 {
-                    foreach (var district in districts)
+                    @foreach (var county in Model.DistrictCounties[district])
                     {
-                        <option value="@district">@district</option>
+                        <option value="@county" data-district="@district">@county</option>
                     }
                 }
-            }
-        </select>
+            </select>
 
-        <h4>Product Filter</h4>
-        <label for="category-select">Category:</label>
-        <select id="category-select" name="category" asp-for="Category">
-            <option value="">All</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Clothing">Clothing</option>
-            <option value="Home Goods">Home Goods</option>
-        </select>
+            <script>
+                var districtSelect = document.getElementById("district-select");
+                var countySelect = document.getElementById("county-select");
+                var countySelectLabel = document.getElementById("county-select-label");
+                var countyOptions = countySelect.getElementsByTagName("option");
+                var countyOptgroups = countySelect.getElementsByTagName("optgroup");
 
-        <label for="price-range">Price Range:</label>
-        <input type="range" id="price-range" name="price-range" asp-for="Max" min="0" max="1000" value="1000">
-        <span id="price-range-value">$@Model.Max</span>
-    </div>
+                districtSelect.addEventListener("change", function () {
+                    var selectedDistrict = districtSelect.value;
+                    if (selectedDistrict) {
+                        countySelect.disabled = false;
+                        countySelectLabel.style.display = "inline";
+                        countySelect.style.display = "inline";
+                        for (var i = 0; i < countyOptions.length; i++) {
+                            var countyOption = countyOptions[i];
+                            var district = countyOption.getAttribute("data-district");
+                            if (district === selectedDistrict) {
+                                countyOption.style.display = "block";
+                            } else {
+                                countyOption.style.display = "none";
+                            }
+                        }
+                        for (var i = 0; i < countyOptgroups.length; i++) {
+                            var countyOptgroup = countyOptgroups[i];
+                            if (countyOptgroup.getElementsByTagName("option").length === 0) {
+                                countyOptgroup.style.display = "none";
+                            } else {
+                                countyOptgroup.style.display = "block";
+                            }
+                        }
+                    } else {
+                        countySelect.disabled = true;
+                        countySelectLabel.style.display = "none";
+                        countySelect.style.display = "none";
+                        for (var i = 0; i < countyOptions.length; i++) {
+                            var countyOption = countyOptions[i];
+                            countyOption.style.display = "block";
+                        }
+                        for (var i = 0; i < countyOptgroups.length; i++) {
+                            var countyOptgroup = countyOptgroups[i];
+                            countyOptgroup.style.display = "block";
+                        }
+                    }
+                });
+            </script>
+
+            <h4>Product Filter</h4>
+            <label for="category-select">Category:</label>
+            <select id="category-select" name="category" asp-for="Category">
+                <option value="">All</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Home Goods">Home Goods</option>
+            </select>
+
+            <label for="price-range">Price Range:</label>
+            <input type="range" id="price-range" name="price-range" asp-for="Max" min="0" max="1000" value="1000">
+            <span id="price-range-value">$@Model.Max</span>
+        </div>
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
 
     <table>
         <thead>
@@ -59,35 +98,17 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var product in Model.Products)
+            @if (Model.Products != null)
             {
-                <tr>
-                    <td>@product.Name</td>
-                    <td>$@product.Price</td>
-                    <td>@product.Store</td>
-                </tr>
+                foreach (var product in Model.Products)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+                        <td>$@product.Price</td>
+                        <td>@product.Store</td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            $('#filter-btn').click(function () {
-                $('#filter-options').toggleClass('filter-collapsed');
-            });
-
-            $('#price-range').on('input', function () {
-                $('#price-range-value').text('$' + $(this).val());
-                // set Min value to 0
-                if ($(this).val() == 0) {
-                    $('input[name="Min"]').val(null);
-                }
-                else {
-                    $('input[name="Min"]').val(0);
-                }
-            });
-        });
-    </script>
-}
