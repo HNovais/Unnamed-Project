@@ -32,10 +32,14 @@ public class ShoppingController : Controller
             {
                 var products = db.Product.ToList();
 
+                // Filter by Category
+
                 if (!string.IsNullOrEmpty(m.Category))
                 {
                     products = db.Product.Where(p => p.Category == m.Category).ToList();
                 }
+
+                // Filter by Min Max (not functional)
 
                 if (m.Min.HasValue)
                 {
@@ -54,6 +58,8 @@ public class ShoppingController : Controller
                 {
                     m.Max = 1000;
                 }
+
+                // Filter by District and County
 
                 var stores = db.Store.ToList();
 
@@ -100,6 +106,8 @@ public class ShoppingController : Controller
                 }
 
                 products = filteredProducts;
+
+                // Create new Model
 
                 var districtCounties = GetDistrictCounties();
 
