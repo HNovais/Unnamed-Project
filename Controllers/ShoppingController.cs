@@ -1,7 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Org.BouncyCastle.Crypto;
-using System.Linq;
 
 public class ShoppingController : Controller
 {
@@ -11,7 +8,9 @@ public class ShoppingController : Controller
     {
         using (var db = new MyDbContext())
         {
-            if (m.DistrictCounties == null)
+            if (m == null ||
+            (m.Category == null && m.District == null && m.County == null &&
+            m.Min == null && m.Max == null))
             {
                 var products = db.Product.ToList();
                 var stores = db.Store.ToList();
@@ -31,7 +30,7 @@ public class ShoppingController : Controller
 
             else 
             {
-                var products = m.Products;
+                var products = db.Product.ToList();
 
                 if (!string.IsNullOrEmpty(m.Category))
                 {
@@ -42,13 +41,66 @@ public class ShoppingController : Controller
                 {
                     products = products.Where(p => p.Price >= m.Min.Value).ToList();
                 }
+                else
+                {
+                    m.Min = 0;
+                }
 
                 if (m.Max.HasValue)
                 {
                     products = products.Where(p => p.Price <= m.Max.Value).ToList();
                 }
+                else
+                {
+                    m.Max = 1000;
+                }
 
                 var stores = db.Store.ToList();
+
+                List<Store> filteredStores = new List<Store>();
+                List<Product> filteredProducts = new List<Product>();
+
+                if (!string.IsNullOrEmpty(m.District) && !string.IsNullOrEmpty(m.County))
+                {
+                    foreach (var store in stores)
+                    {
+                        if (store.District == m.District && store.County == m.County)
+                        {
+                            filteredStores.Add(store);
+                        }
+                    }
+                }
+
+                else if (!string.IsNullOrEmpty(m.District) && string.IsNullOrEmpty(m.County))
+                {
+                    foreach (var store in stores)
+                    {
+                        if (store.District == m.District)
+                        {
+                            filteredStores.Add(store);
+                        }
+                    }
+                }
+
+                else
+                {
+                    filteredStores = stores;
+                }
+
+                foreach (var product in products)
+                {
+                    foreach (var store in filteredStores)
+                    {
+                        if (product.Store == store.Id)
+                        {
+                            filteredProducts.Add(product);
+                            break;
+                        }
+                    }
+                }
+
+                products = filteredProducts;
+
                 var districtCounties = GetDistrictCounties();
 
                 var model = new ShoppingViewModel
@@ -65,56 +117,6 @@ public class ShoppingController : Controller
 
                 return View(model);
             }
-        }
-    }
-    
-
-    [HttpPost]
-    public IActionResult Filter(ShoppingViewModel model)
-    {
-        using (var db = new MyDbContext())
-        {
-            var products = db.Product.AsQueryable();
-            var stores = db.Store.ToList();
-            var districtCounties = GetDistrictCounties();
-
-            if (!string.IsNullOrEmpty(model.Category))
-            {
-                products = products.Where(p => p.Category == model.Category);
-            }
-
-            if (model.Min.HasValue)
-            {
-                products = products.Where(p => p.Price >= model.Min.Value);
-            }
-
-            if (model.Max.HasValue)
-            {
-                products = products.Where(p => p.Price <= model.Max.Value);
-            }
-
-            var filteredProducts = products.ToList();
-
-            if (filteredProducts.Count == 0)
-            {
-                ViewBag.Message = "No products were found matching your search criteria.";
-            }
-
-            var filteredStores = stores.Where(s => filteredProducts.Any(p => p.Store == s.Id)).ToList();
-
-            var resultModel = new ShoppingViewModel
-            {
-                Min = model.Min,
-                Max = model.Max,
-                Products = filteredProducts,
-                Stores = filteredStores,
-                DistrictCounties = districtCounties,
-                District = model.District, // include selected district in the view model
-                County = model.County // include selected county in the view model
-            };
-
-            
-            return RedirectToAction("Shopping", resultModel);
         }
     }
 
