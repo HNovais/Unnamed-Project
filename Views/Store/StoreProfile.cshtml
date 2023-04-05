@@ -86,7 +86,7 @@
 {
     <div class="product">
         <a href="@Url.Action("ProductPage", "Product", new { productId = product.Id , storeName = Model.Name})">
-            <img src="@Url.Content("~/Images/" + product.Icon)" width="250px" height="250px" />
+            <img src="@Url.Content("~/Images/" + Model.Name + "/" + product.Icon)" width="250px" height="250px" />
         </a>
         <p>@product.Name @product.Price€</p>
         @if (User.Identity.Name.ToLower() == Model.Name.ToLower())

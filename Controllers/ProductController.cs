@@ -77,51 +77,82 @@ public class ProductController : Controller
     [HttpPost]
     [Authorize(Roles = "Store")]
     [ValidateAntiForgeryToken]
-    public IActionResult AddProduct(AddProductViewModel model, IFormFile Image, string Store)
+    public async Task<IActionResult> AddProduct(AddProductViewModel model, IFormFile Icon, List<IFormFile> Images, string Store)
     {
-
-        if (Image != null && Image.Length > 0)
+        if (Icon != null && Icon.Length > 0)
         {
-            var fileName = Path.GetFileName(Image.FileName);
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", fileName);
+            var fileName = Path.GetFileName(Icon.FileName);
+            var storeDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", model.Store);
+            var storeFileName = $"{model.Store}-{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}-{Guid.NewGuid()}{Path.GetExtension(fileName)}";
+            var filePath = Path.Combine(storeDirectory, storeFileName);
+
+            if (!Directory.Exists(storeDirectory))
+            {
+                Directory.CreateDirectory(storeDirectory);
+            }
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
-                Image.CopyToAsync(fileStream);
+                await Icon.CopyToAsync(fileStream);
             }
 
-            if (ModelState.IsValid)
+            if (Images != null && Images.Count > 0)
             {
-                using (var db = new MyDbContext())
+                var imagePaths = new List<string>();
+                foreach (var image in Images)
                 {
-                    var store = db.Store.FirstOrDefault(s => s.Username == model.Store);
+                    var imageFileName = Path.GetFileName(image.FileName);
+                    var imageStoreFileName = $"{model.Store}-{DateTime.UtcNow.ToString("yyyyMMddHHmmssfff")}-{Guid.NewGuid()}{Path.GetExtension(imageFileName)}";
+                    var imageFilePath = Path.Combine(storeDirectory, imageStoreFileName);
 
-                    if (store != null)
+                    if (!Directory.Exists(storeDirectory))
                     {
-
-                        var product = new Product
-                        {
-                            Name = model.Name,
-                            Description = model.Description,
-                            Category = model.Category,
-                            Price = model.Price,
-                            Quantity = model.Quantity,
-                            Store = store.Id,
-                            Icon = fileName,
-                            Images = fileName
-                        };
-
-                        db.Product.Add(product);
-                        db.SaveChanges();
+                        Directory.CreateDirectory(storeDirectory);
                     }
 
-                    return RedirectToAction("StoreProfile", "Store", new { storeUsername = model.Store });
+                    using (var fileStream = new FileStream(imageFilePath, FileMode.Create))
+                    {
+                        await image.CopyToAsync(fileStream);
+                    }
+
+                    imagePaths.Add(imageStoreFileName);
+                }
+
+                var allImagePaths = string.Join(";", imagePaths);
+
+                if (ModelState.IsValid)
+                {
+                    using (var db = new MyDbContext())
+                    {
+                        var store = db.Store.FirstOrDefault(s => s.Username == model.Store);
+
+                        if (store != null)
+                        {
+                            var product = new Product
+                            {
+                                Name = model.Name,
+                                Description = model.Description,
+                                Category = model.Category,
+                                Price = model.Price,
+                                Quantity = model.Quantity,
+                                Store = store.Id,
+                                Icon = storeFileName,
+                                Images = allImagePaths
+                            };
+
+                            db.Product.Add(product);
+                            db.SaveChanges();
+                        }
+
+                        return RedirectToAction("StoreProfile", "Store", new { storeUsername = model.Store });
+                    }
                 }
             }
         }
 
         return View(model);
     }
+
 
     [HttpGet]
     [Authorize(Roles = "Store")]

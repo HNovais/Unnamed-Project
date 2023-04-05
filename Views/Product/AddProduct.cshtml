@@ -2,31 +2,94 @@
 
 @model AddProductViewModel
 
-<form asp-action="AddProduct" asp-controller="Product" enctype="multipart/form-data">
-    @Model.Store
+<form asp-action="AddProduct" method="post" enctype="multipart/form-data">
     <input type="hidden" name="Store" value="@Model.Store" />
-    <div>
-        <label for="name">Product name:</label>
-        <textarea name="Name"></textarea>
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
     </div>
-    <div>
-        <label for="description">Description:</label>
-        <textarea name="Description"></textarea>
+
+    <div class="form-group">
+        <label asp-for="Description"></label>
+        <input asp-for="Description" class="form-control" />
     </div>
-    <div>
-        <label for="category">Category:</label>
-        <textarea name="Category"></textarea>
+
+    <div class="form-group">
+        <label asp-for="Category"></label>
+        <input asp-for="Category" class="form-control" />
     </div>
-    <div>
-        <label for="price">Price:</label>
-        <input type="number" name="Price" />
+
+    <div class="form-group">
+        <label asp-for="Price"></label>
+        <input asp-for="Price" class="form-control" />
     </div>
-    <div>
-        <label for="quantity">Quantity:</label>
-        <input type="number" name="Quantity" />
+
+    <div class="form-group">
+        <label asp-for="Quantity"></label>
+        <input asp-for="Quantity" class="form-control" />
     </div>
+
     <div>
-        <input type="file" name="Image" id="Image">
+        <input type="file" name="Icon" id="Icon">
+        <div id="iconPreview"></div>
     </div>
-    <button type="submit">Submit Product</button>
+
+    <div>
+        <input type="file" name="Images" id="Images" multiple>
+        <div id="imagePreview"></div>
+    </div>
+
+    <script>
+        document.getElementById("Icon").addEventListener("change", function () {
+            var previewContainer = document.getElementById("iconPreview");
+            var file = this.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function () {
+                var image = new Image();
+                image.src = this.result;
+                image.className = "preview-image";
+                previewContainer.innerHTML = "";
+                previewContainer.appendChild(image);
+            }
+
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById("Images").addEventListener("change", function () {
+            var previewContainer = document.getElementById("imagePreview");
+            var files = this.files;
+
+            while (previewContainer.firstChild) {
+                previewContainer.removeChild(previewContainer.firstChild);
+            }
+
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var reader = new FileReader();
+
+                reader.onload = function () {
+                    var image = new Image();
+                    image.src = this.result;
+                    image.className = "preview-image";
+                    previewContainer.appendChild(image);
+                }
+
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+
+    <style>
+        .preview-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+    </style>
+
+
+    <button type="submit" class="btn btn-primary">Add Product</button>
 </form>
+

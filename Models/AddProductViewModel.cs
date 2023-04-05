@@ -6,5 +6,6 @@
     public float Price { get; set; }
     public int Quantity { get; set; }
     public string Store { get; set; }
-    public IFormFile Image { get; set; }
+    public IFormFile Icon { get; set; }
+    public List<IFormFile> Images { get; set; }
 }

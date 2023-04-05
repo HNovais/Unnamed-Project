@@ -16,7 +16,7 @@
     @foreach (var image in Model.Images)
     {
         <div class="col-sm-2">
-            <img src="@Url.Content("~/Images/" + Model.Images)" width="500px" height="500px" />
+            <img src="@Url.Content("~/Images/" + Model.Name + "/" + Model.Images)" width="500px" height="500px" />
         </div>
     }
 </div>
