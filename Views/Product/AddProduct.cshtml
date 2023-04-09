@@ -15,19 +15,142 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="Category"></label>
-        <input asp-for="Category" class="form-control" />
+        <label for="category">Category:</label>
+        <select class="form-control" id="category" name="Category">
+            <option value=none></option>
+            <option value="clothing">Clothing</option>
+            <option value="shoes">Shoes</option>
+        </select>
     </div>
+
+    <div id="clothing-features" class="form-group" style="display:none">
+        <label for="gender">Gender:</label>
+        <select class="form-control" id="gender" name="Features.Clothes.Gender">
+            <option value="men">Men</option>
+            <option value="women">Women</option>
+            <option value="unisex">Unisex</option>
+        </select>
+
+        <label for="age">Age:</label>
+        <select class="form-control" id="age" name="Features.Clothes.Age">
+            <option value="adult">Adult</option>
+            <option value="child">Child</option>
+            <option value="baby">Baby</option>
+        </select>
+
+        <label for="colour">Colour:</label>
+        <select class="form-control" id="colour" name="Features.Clothes.Colour" multiple>
+            <option value="white">White</option>
+            <option value="black">Black</option>
+            <option value="blue">Blue</option>
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="yellow">Yellow</option>
+            <option value="grey">Grey</option>
+            <option value="brown">Brown</option>
+            <option value="purple">Purple</option>
+            <option value="pink">Pink</option>
+        </select>
+
+        <label for="brand">Brand:</label>
+        <input type="text" class="form-control" id="brand" name="Features.Clothes.Brand" />
+    </div>
+
+    <div id="shoes-features" class="form-group" style="display:none">
+        <label for="gender">Gender:</label>
+        <select class="form-control" id="gender" name="Features.Shoes.Gender">
+            <option value="men">Men</option>
+            <option value="women">Women</option>
+            <option value="unisex">Unisex</option>
+        </select>
+
+        <label for="age">Age:</label>
+        <select class="form-control" id="age" name="Features.Shoes.Age">
+            <option value="adult">Adult</option>
+            <option value="child">Child</option>
+            <option value="baby">Baby</option>
+        </select>
+
+        <label for="colour">Colour:</label>
+        <select class="form-control" id="colour" name="Features.Shoes.Colour[]" multiple>
+            <option value="white">White</option>
+            <option value="black">Black</option>
+            <option value="blue">Blue</option>
+            <option value="red">Red</option>
+            <option value="green">Green</option>
+            <option value="yellow">Yellow</option>
+            <option value="grey">Grey</option>
+            <option value="brown">Brown</option>
+            <option value="purple">Purple</option>
+            <option value="pink">Pink</option>
+        </select>
+
+        <label for="brand">Brand:</label>
+        <input type="text" class="form-control" id="brand" name="Features.Shoes.Brand" />
+    </div>
+
+    <script >
+        window.onload = function() {
+        document.getElementById("category").addEventListener("change", function() {
+            var category = this.value;
+            var clothingFeatures = document.getElementById("clothing-features");
+            var shoesFeatures = document.getElementById("shoes-features");
+
+            if (category == "clothing") {
+                clothingFeatures.style.display = "block";
+                shoesFeatures.style.display = "none";
+            } else if (category == "shoes") {
+                clothingFeatures.style.display = "none";
+                shoesFeatures.style.display = "block";
+            } else {
+                clothingFeatures.style.display = "none";
+                shoesFeatures.style.display = "none";
+            }
+        });
+    }
+    </script>
 
     <div class="form-group">
         <label asp-for="Price"></label>
         <input asp-for="Price" class="form-control" />
     </div>
 
-    <div class="form-group">
-        <label asp-for="Quantity"></label>
-        <input asp-for="Quantity" class="form-control" />
+    <div>
+        <label>Quantities:</label>
+        <div id="quantities-container">
+            @if (Model.Quantities != null)
+            {
+                for (int index = 0; index < Model.Quantities.Count; index++)
+                {
+                    <div class="quantity-item">
+                    <label>Type:</label>
+                    @Html.TextBoxFor(m => Model.Quantities[index].Type, new { @class = "form-control", required = "required" })
+
+                    <label>Quantity:</label>
+                    @Html.TextBoxFor(m => Model.Quantities[index].Quantity, new { @class = "form-control", required = "required" })
+                </div>
+                }
+            }
+        </div>
+        <button type="button" id="add-quantity-btn">Add Quantity</button>
     </div>
+
+    <script>
+        var addQuantityBtn = document.getElementById("add-quantity-btn");
+        addQuantityBtn.addEventListener("click", function () {
+            var count = document.querySelectorAll("#quantities-container .quantity-item").length;
+
+            var html = '<div class="quantity-item">' +
+                '<label>Type:</label>' +
+                '<input type="text" class="form-control" name="Quantities[' + count + '].Type" required />' +
+                '<label>Quantity:</label>' +
+                '<input type="number" class="form-control" name="Quantities[' + count + '].Quantity" required />' +
+                '</div>';
+
+            var quantitiesContainer = document.getElementById("quantities-container");
+            quantitiesContainer.insertAdjacentHTML("beforeend", html);
+        });
+    </script>
 
     <div>
         <input type="file" name="Icon" id="Icon">
@@ -38,6 +161,18 @@
         <input type="file" name="Images" id="Images" multiple>
         <div id="imagePreview"></div>
     </div>
+
+    <input type="hidden" name="Features.Clothes.Gender" value="@Model.Features?.Clothes?.Gender" />
+    <input type="hidden" name="Features.Clothes.Age" value="@Model.Features?.Clothes?.Age" />
+    <input type="hidden" name="Features.Clothes.Colour" value="@Model.Features?.Clothes?.Colour" />
+    <input type="hidden" name="Features.Clothes.Brand" value="@Model.Features?.Clothes?.Brand" />
+
+    <input type="hidden" name="Features.Shoes.Gender" value="@Model.Features?.Shoes?.Gender" />
+    <input type="hidden" name="Features.Shoes.Age" value="@Model.Features?.Shoes?.Age" />
+    <input type="hidden" name="Features.Shoes.Colour" value="@Model.Features?.Shoes?.Colour" />
+    <input type="hidden" name="Features.Shoes.Brand" value="@Model.Features?.Shoes?.Brand" />
+
+    <button type="submit" class="btn btn-primary">Add Product</button>
 
     <script>
         document.getElementById("Icon").addEventListener("change", function () {
@@ -89,7 +224,5 @@
         }
     </style>
 
-
-    <button type="submit" class="btn btn-primary">Add Product</button>
 </form>
 

@@ -15,10 +15,21 @@ public class MyDbContext : DbContext
     public DbSet<CartProduct> CartProduct { get; set; }
     public DbSet<Admin> Admin { get; set; }
     public DbSet<DiscountCode> DiscountCode { get; set; }
+    public DbSet<Category> Category { get; set; }
+    public DbSet<Feature> Feature { get; set; }
+    public DbSet<FeatureValue> FeatureValue { get; set; }
+    public DbSet<ProductQuantity> ProductQuantity { get; set; }
+    
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         string connectionString = "server=localhost;port=3306;user=root;database=unnamed;password=8426";
         optionsBuilder.UseMySQL(connectionString);
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<FeatureValue>()
+            .HasKey(fv => new { fv.Product, fv.Feature });
     }
 }
 public class User
@@ -164,10 +175,6 @@ public class Product
     public float Price { get; set; }
 
     [Required]
-    [Column("productQuantity")]
-    public int Quantity { get; set; }
-
-    [Required]
     [Column("productIcon")]
     public string Icon { get; set; }
 
@@ -273,4 +280,68 @@ public class DiscountCode
     [Required]
     [Column("discountUpdate")]
     public DateTime UpdateDate { get; set; }
+}
+
+public class Category
+{
+    [Key]
+    [Required]
+    [Column("categoryID")]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("categoryName")]
+    public string Name { get; set; }
+}
+
+public class Feature
+{
+    [Key]
+    [Required]
+    [Column("featureID")]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("featureName")]
+    public string Name { get; set; }
+
+    [Required]
+    [Column("categoryFK")]
+    public int Category { get; set; }
+}
+
+public class FeatureValue
+{
+    [Required]
+    [Column("productFK")]
+    public int Product { get; set; }
+
+    [Required]
+    [Column("featureFK")]
+    public int Feature { get; set; }
+
+    [Required]
+    [Column("value")]
+    public string Value { get; set; }
+
+}
+
+public class ProductQuantity
+{
+    [Key]
+    [Required]
+    [Column("productQuantityID")]
+    public int Id { get; set; }
+    
+    [Required]
+    [Column("productFK")]
+    public int Product { get; set; }
+
+    [Required]
+    [Column("productType")]
+    public string Type { get; set; }
+
+    [Required]
+    [Column("quantity")]
+    public int Quantity { get; set; }
 }

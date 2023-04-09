@@ -77,9 +77,14 @@ public class ProductController : Controller
     [HttpPost]
     [Authorize(Roles = "Store")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddProduct(AddProductViewModel model, IFormFile Icon, List<IFormFile> Images, string Store)
+    public async Task<IActionResult> AddProduct(AddProductViewModel model, IFormFile Icon, List<IFormFile> Images) 
     {
-        if (Icon != null && Icon.Length > 0)
+        var selectedColours = Request.Form["Features.Shoes.Colour[]"].ToArray();
+        var colourString = string.Join(",", selectedColours);
+        model.Features.Clothes.Colour = colourString;
+        model.Features.Shoes.Colour = colourString;
+
+        if (Icon != null && Icon.Length > 0) // Upload Icon
         {
             var fileName = Path.GetFileName(Icon.FileName);
             var storeDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", model.Store);
@@ -96,7 +101,7 @@ public class ProductController : Controller
                 await Icon.CopyToAsync(fileStream);
             }
 
-            if (Images != null && Images.Count > 0)
+            if (Images != null && Images.Count > 0) // Upload Images
             {
                 var imagePaths = new List<string>();
                 foreach (var image in Images)
@@ -118,7 +123,12 @@ public class ProductController : Controller
                     imagePaths.Add(imageStoreFileName);
                 }
 
-                var allImagePaths = string.Join(";", imagePaths);
+                var allImagePaths = string.Join(",", imagePaths);
+
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -134,13 +144,95 @@ public class ProductController : Controller
                                 Description = model.Description,
                                 Category = model.Category,
                                 Price = model.Price,
-                                Quantity = model.Quantity,
                                 Store = store.Id,
                                 Icon = storeFileName,
                                 Images = allImagePaths
                             };
 
                             db.Product.Add(product);
+                            db.SaveChanges();
+
+                            for (int i = 0; i < model.Quantities.Count(); i++)
+                            {
+                                var productQuantity = new ProductQuantity
+                                {
+                                    Product = product.Id,
+                                    Type = model.Quantities[i].Type,
+                                    Quantity = model.Quantities[i].Quantity
+                                };
+
+                                db.ProductQuantity.Add(productQuantity);
+                            }
+
+                            db.SaveChanges();
+
+                            switch (model.Category)
+                            {
+                                case "clothes":
+                                    var clothesFeatures = new ClothesFeatures
+                                    {
+                                        Gender = model.Features.Clothes.Gender,
+                                        Age = model.Features.Clothes.Age,
+                                        Colour = model.Features.Clothes.Colour,
+                                        Brand = model.Features.Clothes.Brand
+                                    };
+
+                                    List<string> clothesproperties = new List<string>
+                                        {
+                                            clothesFeatures.Gender,
+                                            clothesFeatures.Age,
+                                            clothesFeatures.Colour,
+                                            clothesFeatures.Brand
+                                        };
+
+                                    for (int i = 1; i <= 4; i++)
+                                    {
+                                        var fv = new FeatureValue
+                                        {
+                                            Product = product.Id,
+                                            Feature = i,
+                                            Value = clothesproperties[i]
+                                        };
+
+                                        db.FeatureValue.Add(fv);
+                                    }
+
+                                    break;
+
+                                case "shoes":
+                                    var shoesFeatures = new ShoesFeatures
+                                    {
+                                        Gender = model.Features.Shoes.Gender,
+                                        Age = model.Features.Shoes.Age,
+                                        Colour = model.Features.Shoes.Colour,
+                                        Brand = model.Features.Shoes.Brand
+                                    };
+
+                                    List<string> shoesproperties = new List<string>
+                                        {
+                                            shoesFeatures.Gender,
+                                            shoesFeatures.Age,
+                                            shoesFeatures.Colour,
+                                            shoesFeatures.Brand
+                                        };
+
+                                    for (int i = 0; i < 4; i++)
+                                    {
+                                        var fv = new FeatureValue
+                                        {
+                                            Product = product.Id,
+                                            Feature = i + 1,
+                                            Value = shoesproperties[i]
+                                        };
+
+                                        db.FeatureValue.Add(fv);
+                                    }
+
+                                    break;
+                                default:
+                                    break;
+                            }
+
                             db.SaveChanges();
                         }
 
@@ -171,7 +263,6 @@ public class ProductController : Controller
                     Description = product.Description,
                     Category = product.Category,
                     Price = product.Price,
-                    Quantity = product.Quantity,
                     Store = storeName
                 };
 
@@ -199,7 +290,6 @@ public class ProductController : Controller
                     product.Description = model.Description;
                     product.Category = model.Category;
                     product.Price = model.Price;
-                    product.Quantity = model.Quantity;
 
                     if (Image != null && Image.Length > 0)
                     {
