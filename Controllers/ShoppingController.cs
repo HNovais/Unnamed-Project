@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 public class ShoppingController : Controller
 {
@@ -10,7 +11,7 @@ public class ShoppingController : Controller
         {
             if (m == null ||
             (m.Category == null && m.District == null && m.County == null &&
-            m.Min == null && m.Max == null))
+            m.Min == null && m.Max == null && m.Store == null))
             {
                 var products = db.Product.ToList();
                 var stores = db.Store.ToList();
@@ -18,8 +19,8 @@ public class ShoppingController : Controller
 
                 var model = new ShoppingViewModel
                 {
-                    Min = 0,
-                    Max = 1000,
+                    Min = m.Min,
+                    Max = m.Max,
                     Products = products,
                     Stores = stores,
                     DistrictCounties = districtCounties
@@ -32,14 +33,22 @@ public class ShoppingController : Controller
             {
                 var products = db.Product.ToList();
 
+                // Filter by Store
+
+                if (!string.IsNullOrEmpty(m.Store))
+                {
+                    var storeID = db.Store.FirstOrDefault(s => s.Name == m.Store);
+                    products = products.Where(p => p.Store == storeID.Id).ToList();  
+                }
+
                 // Filter by Category
 
                 if (!string.IsNullOrEmpty(m.Category))
                 {
-                    products = db.Product.Where(p => p.Category == m.Category).ToList();
+                    products = products.Where(p => p.Category == m.Category).ToList();
                 }
 
-                // Filter by Min Max (not functional)
+                // Filter by Min Max
 
                 if (m.Min.HasValue)
                 {

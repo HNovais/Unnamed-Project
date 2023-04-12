@@ -2,40 +2,71 @@
 
 @model StoreProfileViewModel
 
-<h1>@Model.Name</h1>
-<p>@Model.Email</p>
-<p>@User.Identity.Name</p>
+<div>
+    <img src="@Url.Content("~/Images/" + Model.Name + "/" + Model.Icon)" width="100px" height="100px" />
+    <h1>@Model.Name</h1>
+    <p>@Model.Email</p>
+    <p>County: @Model.County</p>
+    <p>District: @Model.District</p>
+</div>
 
+<h2>Products</h2>
 
-@if (User.IsInRole("Store") && User.Identity.Name.ToLower() == Model.Name.ToLower())
-{
-    <form action="@Url.Action("EditProfile", "Store", new { storeUsername = User.Identity.Name })" method="get" >
-        @Html.AntiForgeryToken()
-        <button type="submit">Edit Profile</button>
-    </form>
-    @Html.ActionLink("Add Product", "AddProduct", "Product", new { storeUsername = Model.Name }, null)
-}
+<div class="products-container">
+    @foreach (var product in Model.Products)
+    {
+        <div class="product">
+            <a href="@Url.Action("ProductPage", "Product", new { productId = product.Id , storeName = Model.Name})">
+                <img src="@Url.Content("~/Images/" + Model.Name + "/" + product.Icon)" width="250px" height="250px" />
+            </a>
+            <p>@product.Name @product.Price€</p>
+            @if (User.Identity.Name.ToLower() == Model.Name.ToLower())
+            {
+                <a href="@Url.Action("EditProduct", "Product", new { productId = product.Id, storeName = Model.Name })">Edit</a>
+                <form action="@Url.Action("DeleteProduct", "Product", new { productId = product.Id, storeName = Model.Name })" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@product.Id" />
+                    <button type="submit">Delete</button>
+                </form>
+            }
+        </div>
+    }
+</div>
+
 
 @if (User.IsInRole("User"))
 {
     if (@Model.UserReview == null)
     {
-        <h2>Add Review</h2>
-        <form asp-action="AddReview" asp-controller="Store">
-            <input type="hidden" name="StoreUsername" value="@Model.Name" />
-            <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
-            <div>
-                <label for="rating">Rating:</label>
-                <input type="number" name="Rating" min="1" max="5" required />
-            </div>
-            <div>
-                <label for="comment">Comment:</label>
-                <textarea name="Comment"></textarea>
-            </div>
-            <button type="submit">Submit Review</button>
-        </form> 
+        <div id="add-review-form" style="display:none;">
+            <h2>Add Review</h2>
+            <form asp-action="AddReview" asp-controller="Store">
+                <input type="hidden" name="StoreUsername" value="@Model.Name" />
+                <input type="hidden" name="UserUsername" value="@User.Identity.Name" />
+                <div>
+                    <label for="rating">Rating:</label>
+                    <input type="number" name="Rating" min="1" max="5" required />
+                </div>
+                <div>
+                    <label for="comment">Comment:</label>
+                    <textarea name="Comment"></textarea>
+                </div>
+                <button type="submit">Submit Review</button>
+            </form>
+        </div>
+
+        <button type="button" id="add-review-btn">Add Review</button>
+
+        <script>
+            var addReviewBtn = document.getElementById("add-review-btn");
+            var addReviewForm = document.getElementById("add-review-form");
+
+            addReviewBtn.addEventListener("click", function () {
+                addReviewForm.style.display = addReviewForm.style.display === "none" ? "block" : "none";
+            });
+        </script>
+
     }
-    
     else
     {
         <h2>Edit Review</h2>
@@ -56,10 +87,7 @@
     }
 }
 
-
-<h2>Reviews</h2>
-
-@if(Model.UserReview != null)
+@if (Model.UserReview != null)
 {
     <h3>User Review</h3>
 
@@ -70,6 +98,8 @@
     </div>
 }
 
+<h2>Reviews</h2>
+
 @foreach (var review in Model.Reviews)
 {
     <div class="review">
@@ -77,26 +107,5 @@
         <p>Reviewer: @review.Reviewer</p>
         <p>Comment: @review.Comment</p>
         <p>Posted on: @review.ReviewDate</p>
-    </div>
-}
-
-<h2>Products</h2>
-
-@foreach (var product in Model.Products)
-{
-    <div class="product">
-        <a href="@Url.Action("ProductPage", "Product", new { productId = product.Id , storeName = Model.Name})">
-            <img src="@Url.Content("~/Images/" + Model.Name + "/" + product.Icon)" width="250px" height="250px" />
-        </a>
-        <p>@product.Name @product.Price€</p>
-        @if (User.Identity.Name.ToLower() == Model.Name.ToLower())
-        {
-            <a href="@Url.Action("EditProduct", "Product", new { productId = product.Id, storeName = Model.Name })">Edit</a>
-            <form action="@Url.Action("DeleteProduct", "Product", new { productId = product.Id, storeName = Model.Name })" method="post" onsubmit="return confirm('Are you sure you want to delete this product?');">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="productId" value="@product.Id" />
-                <button type="submit">Delete</button>
-            </form>
-        }
     </div>
 }

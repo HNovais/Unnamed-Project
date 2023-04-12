@@ -1,6 +1,7 @@
 ﻿public class ShoppingViewModel
 {
     // Filter Options
+    public string? Store { get; set; }
     public string? County { get; set; }
     public string? District { get; set; }
     public string? Category { get; set; }

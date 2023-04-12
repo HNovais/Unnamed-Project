@@ -21,8 +21,9 @@ public class StoreController : Controller
                 {
                     Name = store.Name,
                     Email = store.Email,
-                    // set other properties as needed
-
+                    County = store.County,
+                    District = store.District,
+                    Icon = store.Icon,
                     UserReview = db.Review.SingleOrDefault(r => r.Store == store.Id && r.Reviewer == User.Identity.Name),
                     Reviews = db.Review.Where(r => r.Store == store.Id && r.Reviewer != User.Identity.Name).ToList(),
                     Products = db.Product.Where(p => p.Store == store.Id).ToList()
