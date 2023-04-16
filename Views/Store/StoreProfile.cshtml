@@ -106,6 +106,22 @@
         <p>Rating: @review.Rating</p>
         <p>Reviewer: @review.Reviewer</p>
         <p>Comment: @review.Comment</p>
-        <p>Posted on: @review.ReviewDate</p>
+        <p>Upvotes: @review.Upvotes</p>
+        <p>Downvotes: @review.Downvotes</p>
+        @if (User.Identity.IsAuthenticated && review.Reviewer != User.Identity.Name)
+        {
+            <div>
+                <form asp-controller="Store" asp-action="Upvote" method="post">
+                    <input type="hidden" name="reviewId" value="@review.Id" />
+                    <input type="hidden" name="storeUsername" value="@Model.Name" />
+                    <button type="submit">Upvote</button>
+                </form>
+                <form asp-controller="Store" asp-action="Downvote" method="post">
+                    <input type="hidden" name="reviewId" value="@review.Id" />
+                    <input type="hidden" name="storeUsername" value="@Model.Name" />
+                    <button type="submit">Downvote</button>
+                </form>
+            </div>
+        }
     </div>
 }

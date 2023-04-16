@@ -19,6 +19,7 @@ public class MyDbContext : DbContext
     public DbSet<Feature> Feature { get; set; }
     public DbSet<FeatureValue> FeatureValue { get; set; }
     public DbSet<ProductQuantity> ProductQuantity { get; set; }
+    public DbSet<Vote> Vote { get; set; }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -30,6 +31,9 @@ public class MyDbContext : DbContext
     {
         modelBuilder.Entity<FeatureValue>()
             .HasKey(fv => new { fv.Product, fv.Feature });
+
+        modelBuilder.Entity<Vote>()
+            .HasKey(fv => new { fv.Review, fv.User});
     }
 }
 public class User
@@ -149,6 +153,14 @@ public class Review
     [Required]
     [Column("reviewDate")]
     public DateTime ReviewDate { get; set; }
+
+    [Required]
+    [Column("upvotes")]
+    public int Upvotes { get; set; }
+
+    [Required]
+    [Column("downvotes")]
+    public int Downvotes { get; set; }
 }
 
 public class Product
@@ -344,4 +356,19 @@ public class ProductQuantity
     [Required]
     [Column("quantity")]
     public int Quantity { get; set; }
+}
+
+public class Vote
+{
+    [Required]
+    [Column("reviewFK")]
+    public int Review { get; set; }
+
+    [Required]
+    [Column("userFK")]
+    public int User { get; set; }
+
+    [Required]
+    [Column("voteType")]
+    public string Type { get; set; }
 }

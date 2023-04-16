@@ -159,5 +159,125 @@ public class StoreController : Controller
 
         return RedirectToAction("StoreProfile", new { storeUsername });
     }
+
+    [HttpPost]
+    [Authorize(Roles = "User")]
+    [ValidateAntiForgeryToken]
+    public IActionResult Upvote(int reviewId, string storeUsername)
+    {
+        using (var db = new MyDbContext())
+        {
+            var review = db.Review.FirstOrDefault(r => r.Id == reviewId);
+            var user = db.User.FirstOrDefault(u => u.Username == User.Identity.Name);
+
+            if (review != null && user != null)
+            {
+                var existingVote = db.Vote.FirstOrDefault(u => u.Review == review.Id && u.User == user.Id);
+
+                if (existingVote == null)
+                {
+                    // User has not upvoted or downvoted this review, so add an upvote
+                    var vote = new Vote
+                    {
+                        Review = review.Id,
+                        User = user.Id,
+                        Type = "upvote"
+                    };
+
+                    review.Upvotes++;
+                    db.Vote.Add(vote);
+                    db.SaveChanges();
+                }
+
+                else if (existingVote != null && existingVote.Type == "downvote")
+                {
+                    // User has downvoted this review, so remove the downvote and add an upvote
+                    review.Downvotes--;
+                    db.Vote.Remove(existingVote);
+
+                    var vote = new Vote
+                    {
+                        Review = review.Id,
+                        User = user.Id,
+                        Type = "upvote"
+                    };
+
+                    review.Upvotes++;
+                    db.Vote.Add(vote);
+                    db.SaveChanges();
+                }
+                else
+                {
+                    // User has already upvoted this review, so remove the upvote
+                    review.Upvotes--;
+                    db.Vote.Remove(existingVote);
+                    db.SaveChanges();
+                }
+            }
+        }
+
+        // Redirect to the same store profile page
+        return RedirectToAction("StoreProfile", new { storeUsername });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "User")]
+    [ValidateAntiForgeryToken]
+    public IActionResult Downvote(int reviewId, string storeUsername)
+    {
+        using (var db = new MyDbContext())
+        {
+            var review = db.Review.FirstOrDefault(r => r.Id == reviewId);
+            var user = db.User.FirstOrDefault(u => u.Username == User.Identity.Name);
+
+            if (review != null && user != null)
+            {
+                var existingVote = db.Vote.FirstOrDefault(u => u.Review == review.Id && u.User == user.Id);
+
+                if (existingVote == null)
+                {
+                    // User has not upvoted or downvoted this review, so add an upvote
+                    var vote = new Vote
+                    {
+                        Review = review.Id,
+                        User = user.Id,
+                        Type = "downvote"
+                    };
+
+                    review.Downvotes++;
+                    db.Vote.Add(vote);
+                    db.SaveChanges();
+                }
+
+                else if (existingVote != null && existingVote.Type == "upvote")
+                {
+                    // User has downvoted this review, so remove the downvote and add an upvote
+                    review.Upvotes--;
+                    db.Vote.Remove(existingVote);
+
+                    var vote = new Vote
+                    {
+                        Review = review.Id,
+                        User = user.Id,
+                        Type = "downvote"
+                    };
+
+                    review.Downvotes++;
+                    db.Vote.Add(vote);
+                    db.SaveChanges();
+                }
+                else
+                {
+                    // User has already upvoted this review, so remove the upvote
+                    review.Downvotes--;
+                    db.Vote.Remove(existingVote);
+                    db.SaveChanges();
+                }
+            }
+        }
+
+        // Redirect to the same store profile page
+        return RedirectToAction("StoreProfile", new { storeUsername });
+    }
 }
 
