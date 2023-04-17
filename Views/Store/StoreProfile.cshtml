@@ -121,7 +121,7 @@
         <p>Comment: @review.Comment</p>
         <p>Upvotes: @review.Upvotes</p>
         <p>Downvotes: @review.Downvotes</p>
-        @if (User.Identity.IsAuthenticated && review.Reviewer != User.Identity.Name)
+        @if (User.Identity.IsAuthenticated && review.Reviewer != User.Identity.Name && User.IsInRole("User"))
         {
             <div>
                 <form asp-controller="Store" asp-action="Upvote" method="post">

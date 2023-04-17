@@ -33,8 +33,21 @@
                             }
                         </li>
                     </ul>
-                    @Html.ActionLink("Login", "Login", "Account")
-                    <p class="nav navbar-text">Hello, @User.Identity?.Name!</p>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        if (User.IsInRole("Store"))
+                        {
+                            <a href="@Url.Action("StoreProfile", "Store", new { storeUsername = User.Identity.Name })" class="btn btn-primary">My Store</a>
+                        }
+                        else
+                        {
+                            <p class="nav navbar-text">Hello, @User.Identity.Name!</p>
+                        }
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-primary">Login</a>
+                    }
                 </div>
             </div>
         </nav>
