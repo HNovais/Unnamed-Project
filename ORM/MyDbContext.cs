@@ -31,9 +31,6 @@ public class MyDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<FeatureValue>()
-            .HasKey(fv => new { fv.Product, fv.Feature });
-
         modelBuilder.Entity<Vote>()
             .HasKey(fv => new { fv.Review, fv.User});
 
@@ -330,6 +327,11 @@ public class Feature
 
 public class FeatureValue
 {
+    [Key]
+    [Required]
+    [Column("fvID")]
+    public int Id { get; set; }
+
     [Required]
     [Column("productFK")]
     public int Product { get; set; }

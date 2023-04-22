@@ -61,6 +61,28 @@ public class ShoppingController : Controller
             {
                 products = products.Where(p => p.Category == category);
                 features = CategoryFilter(category);
+
+                if (featureValues != null && featureValues.Count > 0)
+                {
+                    foreach (var kvp in featureValues)
+                    {
+                        var featureName = kvp.Key;
+                        var featureValue = kvp.Value;
+
+                        if (featureValue != null && featureValue.Count() > 0)
+                        {
+                            var cID = db.Category.FirstOrDefault(c => c.Name == category).Id;
+                            var feature = db.Feature.FirstOrDefault(f => f.Name == featureName && f.Category == cID);
+
+                            if (feature != null)
+                            {
+                                var featureValueQuery = db.FeatureValue.Where(fv => fv.Feature == feature.Id && featureValue.Contains(fv.Value));
+
+                                products = products.Where(p => featureValueQuery.Any(fv => fv.Product == p.Id));
+                            }
+                        }
+                    }
+                }
             }
 
             products = products.Where(p => p.Price >= min);
