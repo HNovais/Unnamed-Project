@@ -1,139 +1,87 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata;
+using System.Diagnostics.Metrics;
 
 public class ShoppingController : Controller
 {
     [HttpGet]
     [Route("shopping")]
-    public IActionResult Shopping(ShoppingViewModel m)
+    public IActionResult Shopping()
     {
         using (var db = new MyDbContext())
         {
-            if (m == null ||
-            (m.Category == null && m.District == null && m.County == null &&
-            m.Min == null && m.Max == null && m.Store == null))
+            var products = db.Product.ToList();
+            var stores = db.Store.ToList();
+            var dc = GetDistrictCounties();
+            var categories = db.Category.Select(c => c.Name).ToList();
+
+            var model = new ShoppingViewModel
             {
-                var products = db.Product.ToList();
-                var stores = db.Store.ToList();
-                var districtCounties = GetDistrictCounties();
+                Products = products,
+                Stores = stores,
+                DistrictCounties = dc,
+                Categories = categories,
+                Min = 0,
+                Max = 1000
+            };
 
-                var model = new ShoppingViewModel
-                {
-                    Min = m.Min,
-                    Max = m.Max,
-                    Products = products,
-                    Stores = stores,
-                    DistrictCounties = districtCounties
-                };
+            return View(model);
+        }
+    }
 
-                return View(model);
+    [HttpPost]
+    public IActionResult FilterProducts(string store, string county, string district, string category, float min, float max, Dictionary<string, List<string>> featureValues)
+    {
+        using (var db = new MyDbContext())
+        {
+            var products = db.Product.AsQueryable();
+            var stores = db.Store.AsQueryable();
+            Dictionary<string, List<string>> features = new Dictionary<string, List<string>>();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(store))
+            {
+                stores = stores.Where(s => s.Name.Contains(store));
+                products = products.Where(p => stores.Any(s => s.Id == p.Store));
             }
 
-            else 
+            if (!string.IsNullOrEmpty(county))
             {
-                var products = db.Product.ToList();
-
-                // Filter by Store
-
-                if (!string.IsNullOrEmpty(m.Store))
-                {
-                    var storeID = db.Store.FirstOrDefault(s => s.Name == m.Store);
-                    products = products.Where(p => p.Store == storeID.Id).ToList();  
-                }
-
-                // Filter by Category
-
-                if (!string.IsNullOrEmpty(m.Category))
-                {
-                    products = products.Where(p => p.Category == m.Category).ToList();
-                }
-
-                // Filter by Min Max
-
-                if (m.Min.HasValue)
-                {
-                    products = products.Where(p => p.Price >= m.Min.Value).ToList();
-                }
-                else
-                {
-                    m.Min = 0;
-                }
-
-                if (m.Max.HasValue)
-                {
-                    products = products.Where(p => p.Price <= m.Max.Value).ToList();
-                }
-                else
-                {
-                    m.Max = 1000;
-                }
-
-                // Filter by District and County
-
-                var stores = db.Store.ToList();
-
-                List<Store> filteredStores = new List<Store>();
-                List<Product> filteredProducts = new List<Product>();
-
-                if (!string.IsNullOrEmpty(m.District) && !string.IsNullOrEmpty(m.County))
-                {
-                    foreach (var store in stores)
-                    {
-                        if (store.District == m.District && store.County == m.County)
-                        {
-                            filteredStores.Add(store);
-                        }
-                    }
-                }
-
-                else if (!string.IsNullOrEmpty(m.District) && string.IsNullOrEmpty(m.County))
-                {
-                    foreach (var store in stores)
-                    {
-                        if (store.District == m.District)
-                        {
-                            filteredStores.Add(store);
-                        }
-                    }
-                }
-
-                else
-                {
-                    filteredStores = stores;
-                }
-
-                foreach (var product in products)
-                {
-                    foreach (var store in filteredStores)
-                    {
-                        if (product.Store == store.Id)
-                        {
-                            filteredProducts.Add(product);
-                            break;
-                        }
-                    }
-                }
-
-                products = filteredProducts;
-
-                // Create new Model
-
-                var districtCounties = GetDistrictCounties();
-
-                var model = new ShoppingViewModel
-                {
-                    Min = m.Min,
-                    Max = m.Max,
-                    Products = products.ToList(),
-                    Stores = stores,
-                    DistrictCounties = districtCounties,
-                    Category = m.Category,
-                    District = m.District,
-                    County = m.County
-                };
-
-                return View(model);
+                stores = stores.Where(s => s.County.Contains(county));
+                products = products.Where(p => stores.Any(s => s.Id == p.Store));
             }
+
+            if (!string.IsNullOrEmpty(district))
+            {
+                stores = stores.Where(s => s.District.Contains(district));
+                products = products.Where(p => stores.Any(s => s.Id == p.Store));
+            }
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                products = products.Where(p => p.Category == category);
+                features = CategoryFilter(category);
+            }
+
+            products = products.Where(p => p.Price >= min);
+            products = products.Where(p => p.Price <= max);
+
+            var model = new ShoppingViewModel
+            {
+                Products = products.ToList(),
+                Stores = db.Store.ToList(),
+                DistrictCounties = GetDistrictCounties(),
+                Categories = db.Category.Select(c => c.Name).ToList(),
+                Store = store,
+                County = county,
+                District = district,
+                Category = category,
+                Min = min,
+                Max = max,
+                CatFilter = features
+            };
+
+            return View("Shopping", model);
         }
     }
 
@@ -141,25 +89,46 @@ public class ShoppingController : Controller
     {
         var districtCounties = new Dictionary<string, List<string>>();
 
-        using (var reader = new StreamReader("Data/ConcelhoDistrito.csv"))
+        using (var db = new MyDbContext())
         {
-            while (!reader.EndOfStream)
+            var dc = db.DistrictCounty.ToList();
+
+            // Group the counties by district using LINQ
+            var grouped = dc.GroupBy(x => x.District);
+
+            // Populate the dictionary with the grouped data
+            foreach (var group in grouped)
             {
-                var line = reader.ReadLine();
-                var values = line.Split(',');
-                var district = values[1];
-                var county = values[0];
-
-                if (!districtCounties.ContainsKey(district))
-                {
-                    districtCounties[district] = new List<string>();
-                }
-
-                districtCounties[district].Add(county);
+                var district = group.Key;
+                var counties = group.Select(x => x.County).ToList();
+                districtCounties.Add(district, counties);
             }
         }
 
         return districtCounties;
     }
 
+    private Dictionary<string, List<string>> CategoryFilter(string category)
+    {
+        Dictionary<string, List<string>> filters = new Dictionary<string, List<string>>();
+
+        using (var db = new MyDbContext())
+        {
+            var cat = db.Category.FirstOrDefault(c => c.Name == category);
+
+            var features = db.Feature.Where(f => f.Category == cat.Id).ToList();
+
+            foreach (var feature in features)
+            {
+                var options = db.FeatureOptions
+                    .Where(fo => fo.Feature == feature.Id)
+                    .Select(fo => fo.Value)
+                    .ToList();
+
+                filters.Add(feature.Name, options);
+            }
+
+            return filters;
+        }
+    }
 }

@@ -1,7 +1,7 @@
 ﻿@model ShoppingViewModel
 
 <div class="container">
-    <form id="shopping-form" asp-controller="Shopping" asp-action="Shopping" method="get">
+    <form id="FilterProducts-form" asp-controller="Shopping" asp-action="FilterProducts" method="post">
         <div id="filter-options" class="filter-collapsed">
 
             <h4>Store Filter</h4>
@@ -13,8 +13,15 @@
                 {
                     <option value="@store.Name">@store.Name</option>
                 }
+            </select>
 
-
+            <label for="category-select">Category:</label>
+            <select id="category-select" name="category" asp-for="Category">
+                <option value="">All</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option value="@category">@category</option>
+                }
             </select>
 
             <label for="district-select">District:</label>
@@ -84,18 +91,37 @@
                 });
             </script>
 
-            <h4>Product Filter</h4>
-            <label for="category-select">Category:</label>
-            <select id="category-select" name="category" asp-for="Category">
-                <option value="">All</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Shoes">Shoes</option>
-            </select>
-
             <label for="price-min">Minimum Price:</label>
             <input type="number" id="price-min" name="min" asp-for="Min" min="0" max="1000" value="0">
             <label for="price-max">Maximum Price:</label>
             <input type="number" id="price-max" name="max" asp-for="Max" min="0" max="1000" value="1000">
+
+            @if(Model.CatFilter != null)
+            {
+                <h4>Category Filter</h4>
+
+                @foreach (var feature in Model.CatFilter)
+                {
+                    <label>@feature.Key</label>
+                    @if (feature.Value.Count > 1)
+                    {
+                        <select multiple name="@feature.Key">
+                            @foreach (var option in feature.Value)
+                            {
+                                <option value="@option">@option</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        @foreach (var option in feature.Value)
+                        {
+                            <input type="checkbox" name="@feature.Key" value="@option"> @option <br>
+                        }
+                    }
+                }
+            }
+
         </div>
         <button type="submit" class="btn btn-primary">Filter</button>
     </form>

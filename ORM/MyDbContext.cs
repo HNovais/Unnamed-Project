@@ -18,8 +18,10 @@ public class MyDbContext : DbContext
     public DbSet<Category> Category { get; set; }
     public DbSet<Feature> Feature { get; set; }
     public DbSet<FeatureValue> FeatureValue { get; set; }
+    public DbSet<FeatureOptions> FeatureOptions { get; set; }
     public DbSet<ProductQuantity> ProductQuantity { get; set; }
     public DbSet<Vote> Vote { get; set; }
+    public DbSet<DistrictCounty> DistrictCounty { get; set; }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -34,8 +36,12 @@ public class MyDbContext : DbContext
 
         modelBuilder.Entity<Vote>()
             .HasKey(fv => new { fv.Review, fv.User});
+
+        modelBuilder.Entity<DistrictCounty>()
+            .HasKey(fv => new { fv.District, fv.County });
     }
 }
+
 public class User
 {
     [Key]
@@ -338,6 +344,22 @@ public class FeatureValue
 
 }
 
+public class FeatureOptions
+{
+    [Key]
+    [Required]
+    [Column("ID")]
+    public int Id { get; set; }
+
+    [Required]
+    [Column("FeatureFK")]
+    public int Feature { get; set; }
+
+    [Required]
+    [Column("Value")]
+    public string Value { get; set; }
+}
+
 public class ProductQuantity
 {
     [Key]
@@ -371,4 +393,15 @@ public class Vote
     [Required]
     [Column("voteType")]
     public string Type { get; set; }
+}
+
+public class DistrictCounty
+{
+    [Required]
+    [Column("district")]
+    public string District;
+
+    [Required]
+    [Column("county")]
+    public string County;
 }
