@@ -25,21 +25,24 @@
 
     <div id="clothing-features" class="form-group" style="display:none">
         <label for="gender">Gender:</label>
-        <select class="form-control" id="gender" name="Features.Shoes.Gender">
+        <select class="form-control" id="gender" name="Features.Clothes.Gender">
+            <option value=none></option>
             <option value="Men">Men</option>
             <option value="Women">Women</option>
             <option value="Unisex">Unisex</option>
         </select>
 
         <label for="age">Age:</label>
-        <select class="form-control" id="age" name="Features.Shoes.Age">
+        <select class="form-control" id="age" name="Features.Clothes.Age">
+            <option value=none></option>
             <option value="Adult">Adult</option>
             <option value="Child">Child</option>
             <option value="Baby">Baby</option>
         </select>
 
         <label for="colour">Colour:</label>
-        <select class="form-control" id="colour" name="Features.Shoes.Colour[]" multiple>
+        <select class="form-control" id="colour" name="Features.Clothes.Colour[]" multiple>
+            <option value=none></option>
             <option value="White">White</option>
             <option value="Black">Black</option>
             <option value="Blue">Blue</option>
@@ -96,10 +99,10 @@
             var clothingFeatures = document.getElementById("clothing-features");
             var shoesFeatures = document.getElementById("shoes-features");
 
-            if (category == "clothing") {
+            if (category == "Clothing") {
                 clothingFeatures.style.display = "block";
                 shoesFeatures.style.display = "none";
-            } else if (category == "shoes") {
+            } else if (category == "Shoes") {
                 clothingFeatures.style.display = "none";
                 shoesFeatures.style.display = "block";
             } else {

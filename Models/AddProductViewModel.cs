@@ -27,7 +27,7 @@ public class ClothesFeatures
 {
     public string? Gender { get; set; } // Men, Woman, Unissex
     public string? Age { get; set; } // Adult, Child, Baby
-    public string? Colour { get; set; }
+    public List<string>? Colour { get; set; }
     public string? Brand { get; set; }
 }
 
@@ -35,6 +35,6 @@ public class ShoesFeatures
 {
     public string? Gender { get; set; } // Men, Woman, Unissex
     public string? Age { get; set; } // Adult, Child, Baby
-    public string? Colour { get; set; }
+    public List<string>? Colour { get; set; }
     public string? Brand { get; set; }
 }

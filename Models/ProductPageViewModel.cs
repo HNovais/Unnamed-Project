@@ -8,5 +8,8 @@ public class ProductPageViewModel
     public string Category { get; set; }
     public float Price { get; set; }
     public string Seller { get; set; }
-    public string Images { get; set; }
+    public List<string> Images { get; set; }
+    public string Icon { get; set; }
+    public Store Store { get; set; }
+    public decimal StoreRating { get; set; }
 }
