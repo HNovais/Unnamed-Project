@@ -8,7 +8,10 @@
     public string Store { get; set; }
     public IFormFile Icon { get; set; }
     public List<IFormFile> Images { get; set; }
-    public CategoryFeatures Features { get; set; }
+    public List<string> Categories { get; set; }
+    public Dictionary<string, string> Features { get; set; }
+    // THIS IS EASY ENOUGH. KEY = FEATURES FROM THE DICTIONARY. VALUES = FEATUREOPTIONS. THEN JUST ADD THE OPTION TO CHOOSE AND MAKE THE ADDPRODUCT FUNCTION
+    // public CategoryFeatures Features { get; set; }
 }
 
 public class ProdQuantity

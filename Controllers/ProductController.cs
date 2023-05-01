@@ -93,16 +93,20 @@ public class ProductController : Controller
     [Authorize(Roles = "Store")]
     public ActionResult AddProduct(string storeUsername)
     {
-        Console.WriteLine(storeUsername);
-        var model = new AddProductViewModel
+        using (var db = new MyDbContext())
         {
-            Store = storeUsername
-        };
+            var categories = db.Category.Select(p => p.Name).ToList();
 
-        return View(model);
+            var model = new AddProductViewModel
+            {
+                Store = storeUsername,
+                Categories = categories
+            };
 
+            return View(model);
+        }
     }
-
+    /*
     [HttpPost]
     [Authorize(Roles = "Store")]
     [ValidateAntiForgeryToken]
@@ -343,8 +347,7 @@ public class ProductController : Controller
 
         return View(model);
     }
-
-
+    */
     [HttpGet]
     [Authorize(Roles = "Store")]
     public ActionResult EditProduct(int productId, string storeName)
@@ -472,5 +475,20 @@ public class ProductController : Controller
             return RedirectToAction("ProductPage", new { productId = productID, storeName = seller });
         }
     }
-}
 
+    [HttpGet]
+    public ActionResult GetFeatures(string category)
+    {
+        using (var database = new MyDbContext())
+        {
+            var id = database.Category.FirstOrDefault(c => c.Name == category).Id;
+
+            var features = database.Feature
+                .Where(f => f.Category == id)
+                .Select(f => f.Name)
+                .ToList();
+
+            return Json(features);
+        }
+    }
+}

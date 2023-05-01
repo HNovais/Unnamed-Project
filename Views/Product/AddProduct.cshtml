@@ -18,11 +18,44 @@
         <label for="category">Category:</label>
         <select class="form-control" id="category" name="Category">
             <option value=none></option>
-            <option value="Clothing">Clothing</option>
-            <option value="Shoes">Shoes</option>
+            @foreach (var option in Model.Categories)
+                {
+                    <option value="@option">@option</option>
+                }
         </select>
     </div>
 
+    <div id="features-container"></div>
+
+    @section scripts {
+        <script>
+            $(function () {
+                $('#category').change(function () {
+                    var category = $(this).val();
+                    if (category !== 'none') {
+                        $.ajax({
+                            url: '/Product/GetFeatures',
+                            type: 'GET',
+                            data: { category: category },
+                            success: function (data) {
+                                var features = $('<ul>');
+                                $.each(data, function (i, feature) {
+                                    features.append($('<li>').text(feature));
+                                });
+                                $('#features-container').html(features);
+                            },
+                            error: function () {
+                                alert('An error occurred while retrieving features.');
+                            }
+                        });
+                    } else {
+                        $('#features-container').html('');
+                    }
+                });
+            });
+        </script>
+    }
+    <!--
     <div id="clothing-features" class="form-group" style="display:none">
         <label for="gender">Gender:</label>
         <select class="form-control" id="gender" name="Features.Clothes.Gender">
@@ -112,6 +145,7 @@
         });
     }
     </script>
+    -->
 
     <div class="form-group">
         <label asp-for="Price"></label>
@@ -164,17 +198,7 @@
         <input type="file" name="Images" id="Images" multiple>
         <div id="imagePreview"></div>
     </div>
-
-    <input type="hidden" name="Features.Clothes.Gender" value="@Model.Features?.Clothes?.Gender" />
-    <input type="hidden" name="Features.Clothes.Age" value="@Model.Features?.Clothes?.Age" />
-    <input type="hidden" name="Features.Clothes.Colour" value="@Model.Features?.Clothes?.Colour" />
-    <input type="hidden" name="Features.Clothes.Brand" value="@Model.Features?.Clothes?.Brand" />
-
-    <input type="hidden" name="Features.Shoes.Gender" value="@Model.Features?.Shoes?.Gender" />
-    <input type="hidden" name="Features.Shoes.Age" value="@Model.Features?.Shoes?.Age" />
-    <input type="hidden" name="Features.Shoes.Colour" value="@Model.Features?.Shoes?.Colour" />
-    <input type="hidden" name="Features.Shoes.Brand" value="@Model.Features?.Shoes?.Brand" />
-
+    
     <button type="submit" class="btn btn-primary">Add Product</button>
 
     <script>
