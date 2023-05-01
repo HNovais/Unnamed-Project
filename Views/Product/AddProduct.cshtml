@@ -19,9 +19,9 @@
         <select class="form-control" id="category" name="Category">
             <option value=none></option>
             @foreach (var option in Model.Categories)
-                {
-                    <option value="@option">@option</option>
-                }
+            {
+                <option value="@option">@option</option>
+            }
         </select>
     </div>
 
@@ -38,23 +38,38 @@
                             type: 'GET',
                             data: { category: category },
                             success: function (data) {
-                                var features = $('<ul>');
+                                var featuresContainer = $('#features-container');
+                                featuresContainer.empty();
                                 $.each(data, function (i, feature) {
-                                    features.append($('<li>').text(feature));
+                                    var featureDiv = $('<div class="form-group">');
+                                    featureDiv.append($('<label>').text(feature.Name + ":"));
+
+                                    if (feature.Options.length > 0) {
+                                        var options = $('<select multiple class="form-control">');
+                                        $.each(feature.Options, function (j, option) {
+                                            options.append($('<option>').text(option));
+                                        });
+                                        featureDiv.append(options);
+                                    } else {
+                                        var textInput = $('<input class="form-control" type="text">');
+                                        featureDiv.append(textInput);
+                                    }
+
+                                    featuresContainer.append(featureDiv);
                                 });
-                                $('#features-container').html(features);
-                            },
+                            }
                             error: function () {
                                 alert('An error occurred while retrieving features.');
                             }
                         });
                     } else {
-                        $('#features-container').html('');
+                        $('#features-container').empty();
                     }
                 });
             });
         </script>
     }
+
     <!--
     <div id="clothing-features" class="form-group" style="display:none">
         <label for="gender">Gender:</label>

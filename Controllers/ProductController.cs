@@ -481,7 +481,12 @@ public class ProductController : Controller
     {
         using (var database = new MyDbContext())
         {
-            var id = database.Category.FirstOrDefault(c => c.Name == category).Id;
+            var id = database.Category.FirstOrDefault(c => c.Name == category)?.Id;
+
+            if (id == null)
+            {
+                return Json(new { error = "Category not found" });
+            }
 
             var features = database.Feature
                 .Where(f => f.Category == id)
@@ -489,6 +494,23 @@ public class ProductController : Controller
                 .ToList();
 
             return Json(features);
+        }
+    }
+
+
+    [HttpGet]
+    public ActionResult GetFeatureOptions(string feature)
+    {
+        using (var db = new MyDbContext())
+        {
+            var id = db.Feature.FirstOrDefault(f => f.Name == feature).Id;
+
+            var options = db.FeatureOptions
+                .Where(f => f.Feature == id)
+                .Select(f => f.Value)
+                .ToList();
+
+            return Json(options);
         }
     }
 }
