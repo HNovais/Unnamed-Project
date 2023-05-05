@@ -106,6 +106,49 @@ public class ProductController : Controller
             return View(model);
         }
     }
+
+    [HttpPost]
+    [Authorize(Roles="Store")]
+    [ValidateAntiForgeryToken]
+    public IActionResult AddProduct(AddProductViewModel model, IFormFile Icon, List<IFormFile> Images)
+    {
+        string name = model.Name;
+        float price = model.Price;
+        string category = model.Category;
+        using (var db = new MyDbContext())
+        {
+            var id = db.Category.FirstOrDefault(c => c.Name == category).Id;
+            var features = db.Feature.Where(f => f.Category == id).Select(f => f.Name).ToList();
+
+            // Loop through the list of features and print their values
+            foreach (var feature in model.Features)
+            {
+                string featureName = features[feature.Index];
+
+                // If the feature has a select element, get the selected values
+                if (feature.Values != null)
+                {
+                    List<string> selectedValues = feature.Values.Where(v => !string.IsNullOrEmpty(v)).ToList();
+
+                    // Print the selected values
+                    Console.WriteLine($"Feature Name: {featureName}, Selected Values: {string.Join(", ", selectedValues)}");
+                }
+                // If the feature has a text input element, get the entered value
+                else
+                {
+                    string enteredValue = feature.EnteredValue;
+
+                    // Print the entered value
+                    Console.WriteLine($"Feature Name: {featureName}, Entered Value: {enteredValue}");
+                }
+            }
+
+            // Return a view or redirect to another action
+            return View();
+
+        }
+    }
+
     /*
     [HttpPost]
     [Authorize(Roles = "Store")]

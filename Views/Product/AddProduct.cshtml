@@ -38,26 +38,41 @@
                             type: 'GET',
                             data: { category: category },
                             success: function (data) {
-                                var featuresContainer = $('#features-container');
-                                featuresContainer.empty();
+                                var features = $('<div>');
+
                                 $.each(data, function (i, feature) {
-                                    var featureDiv = $('<div class="form-group">');
-                                    featureDiv.append($('<label>').text(feature.Name + ":"));
+                                    var featureItem = $('<div>');
+                                    var label = $('<label>').text(feature).attr('for', 'Features[' + i + '].Values');
+                                    var optionsList = $('<select>').attr('multiple', 'multiple').addClass('form-control').attr('name', 'Features[' + i + '].Values[]');
+                                    var textInput = $('<input>').attr('type', 'text').addClass('form-control').attr('name', 'Features[' + i + '].EnteredValue');
+                                    var index = $('<input>').attr('type', 'hidden').attr('name', 'Features[' + i + '].Index').val(i);
 
-                                    if (feature.Options.length > 0) {
-                                        var options = $('<select multiple class="form-control">');
-                                        $.each(feature.Options, function (j, option) {
-                                            options.append($('<option>').text(option));
-                                        });
-                                        featureDiv.append(options);
-                                    } else {
-                                        var textInput = $('<input class="form-control" type="text">');
-                                        featureDiv.append(textInput);
-                                    }
+                                    $.ajax({
+                                        url: '/Product/GetFeatureOptions',
+                                        type: 'GET',
+                                        data: { feature: feature },
+                                        success: function (options) {
+                                            if (options.length > 0) {
+                                                $.each(options, function (i, option) {
+                                                    optionsList.append($('<option>').text(option));
+                                                });
+                                                featureItem.append(optionsList);
+                                            } else {
+                                                featureItem.append(textInput.clone());
+                                            }
+                                        },
+                                        error: function () {
+                                            alert('An error occurred while retrieving options for feature ' + feature);
+                                        }
+                                    });
 
-                                    featuresContainer.append(featureDiv);
+                                    featureItem.append(label)
+                                    featureItem.append(index)
+                                    features.append(featureItem);
                                 });
-                            }
+
+                                $('#features-container').html(features);
+                            },
                             error: function () {
                                 alert('An error occurred while retrieving features.');
                             }
@@ -69,98 +84,6 @@
             });
         </script>
     }
-
-    <!--
-    <div id="clothing-features" class="form-group" style="display:none">
-        <label for="gender">Gender:</label>
-        <select class="form-control" id="gender" name="Features.Clothes.Gender">
-            <option value=none></option>
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
-            <option value="Unisex">Unisex</option>
-        </select>
-
-        <label for="age">Age:</label>
-        <select class="form-control" id="age" name="Features.Clothes.Age">
-            <option value=none></option>
-            <option value="Adult">Adult</option>
-            <option value="Child">Child</option>
-            <option value="Baby">Baby</option>
-        </select>
-
-        <label for="colour">Colour:</label>
-        <select class="form-control" id="colour" name="Features.Clothes.Colour[]" multiple>
-            <option value=none></option>
-            <option value="White">White</option>
-            <option value="Black">Black</option>
-            <option value="Blue">Blue</option>
-            <option value="Red">Red</option>
-            <option value="Green">Green</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Grey">Grey</option>
-            <option value="Brown">Brown</option>
-            <option value="Purple">Purple</option>
-            <option value="Pink">Pink</option>
-        </select>
-
-        <label for="brand">Brand:</label>
-        <input type="text" class="form-control" id="brand" name="Features.Clothes.Brand" />
-    </div>
-
-    <div id="shoes-features" class="form-group" style="display:none">
-        <label for="gender">Gender:</label>
-        <select class="form-control" id="gender" name="Features.Shoes.Gender">
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
-            <option value="Unisex">Unisex</option>
-        </select>
-
-        <label for="age">Age:</label>
-        <select class="form-control" id="age" name="Features.Shoes.Age">
-            <option value="Adult">Adult</option>
-            <option value="Child">Child</option>
-            <option value="Baby">Baby</option>
-        </select>
-
-        <label for="colour">Colour:</label>
-        <select class="form-control" id="colour" name="Features.Shoes.Colour[]" multiple>
-            <option value="White">White</option>
-            <option value="Black">Black</option>
-            <option value="Blue">Blue</option>
-            <option value="Red">Red</option>
-            <option value="Green">Green</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Grey">Grey</option>
-            <option value="Brown">Brown</option>
-            <option value="Purple">Purple</option>
-            <option value="Pink">Pink</option>
-        </select>
-
-        <label for="brand">Brand:</label>
-        <input type="text" class="form-control" id="brand" name="Features.Shoes.Brand" />
-    </div>
-
-    <script >
-        window.onload = function() {
-        document.getElementById("category").addEventListener("change", function() {
-            var category = this.value;
-            var clothingFeatures = document.getElementById("clothing-features");
-            var shoesFeatures = document.getElementById("shoes-features");
-
-            if (category == "Clothing") {
-                clothingFeatures.style.display = "block";
-                shoesFeatures.style.display = "none";
-            } else if (category == "Shoes") {
-                clothingFeatures.style.display = "none";
-                shoesFeatures.style.display = "block";
-            } else {
-                clothingFeatures.style.display = "none";
-                shoesFeatures.style.display = "none";
-            }
-        });
-    }
-    </script>
-    -->
 
     <div class="form-group">
         <label asp-for="Price"></label>

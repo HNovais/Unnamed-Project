@@ -9,9 +9,7 @@
     public IFormFile Icon { get; set; }
     public List<IFormFile> Images { get; set; }
     public List<string> Categories { get; set; }
-    public Dictionary<string, string> Features { get; set; }
-    // THIS IS EASY ENOUGH. KEY = FEATURES FROM THE DICTIONARY. VALUES = FEATUREOPTIONS. THEN JUST ADD THE OPTION TO CHOOSE AND MAKE THE ADDPRODUCT FUNCTION
-    // public CategoryFeatures Features { get; set; }
+    public List<FeatureViewModel> Features { get; set; }
 }
 
 public class ProdQuantity
@@ -20,6 +18,15 @@ public class ProdQuantity
     public int Quantity { get; set; }
 }
 
+public class FeatureViewModel
+{
+    public string Name { get; set; }
+    public List<string> Values { get; set; }
+    public string EnteredValue { get; set; }
+    public int Index { get; set; }
+}
+
+/*
 public class CategoryFeatures
 {
     public ClothesFeatures Clothes { get; set; }
@@ -41,3 +48,4 @@ public class ShoesFeatures
     public List<string>? Colour { get; set; }
     public string? Brand { get; set; }
 }
+*/
