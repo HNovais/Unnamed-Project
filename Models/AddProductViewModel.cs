@@ -1,4 +1,6 @@
-﻿public class AddProductViewModel
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+public class AddProductViewModel
 {
     public string Name { get; set; }
     public string Description { get; set; }
@@ -6,8 +8,6 @@
     public float Price { get; set; }
     public List<ProdQuantity> Quantities { get; set; }
     public string Store { get; set; }
-    public IFormFile Icon { get; set; }
-    public List<IFormFile> Images { get; set; }
     public List<string> Categories { get; set; }
     public List<FeatureViewModel> Features { get; set; }
 }
@@ -20,9 +20,12 @@ public class ProdQuantity
 
 public class FeatureViewModel
 {
-    public string Name { get; set; }
-    public List<string> Values { get; set; }
-    public string EnteredValue { get; set; }
+    [BindNever]
+    public string? Name { get; set; }
+    [BindNever]
+    public List<string>? Values { get; set; }
+    [BindNever]
+    public string? EnteredValue { get; set; }
     public int Index { get; set; }
 }
 
